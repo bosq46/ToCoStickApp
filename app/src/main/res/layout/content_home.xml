@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#ffffff"
+    tools:context="com.example.kohki.tocostickapp.HomeActivity"
+    tools:showIn="@layout/activity_home">
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"
+        android:text="メインメニュー" />
+
+        <View
+            android:id="@+id/View1"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1.2" />
+
+        <ImageView
+            android:id="@+id/imageView1"
+            android:layout_width="wrap_content"
+            android:layout_height="100dp"
+         />   android:src="@drawable/logo" />
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="0"
+            android:text="TWE Control"
+            android:textSize="30dp" />
+
+        <View
+            android:id="@+id/View2"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1.5" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:gravity="center"
+            >
+
+            <Button
+                android:id="@+id/btnBegin"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onBeginClick"
+                android:text="接続"
+                />
+
+            <Button
+                android:id="@+id/btnEnd"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onEndClick"
+                android:text="切断" />
+
+            <TextView
+                android:id="@+id/textView1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#ff0000"
+                android:text="未接続" />
+
+        </LinearLayout>
+
+    <View
+        android:id="@+id/View3"
+        android:layout_width="0dp"
+        android:layout_height="5dp"
+        android:layout_weight="0" />
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <Button
+                android:id="@+id/btn_pse_ard"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="センサデータ(ダミー)送信" />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="センサデータ取得"
+                android:id="@+id/btn_data_getter" />
+
+        </LinearLayout>
+
+
+    <Button
+            android:id="@+id/chat"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="チャット"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp" />
+
+        <View
+            android:id="@+id/View4"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1.5" >
+        </View>
+</LinearLayout>
