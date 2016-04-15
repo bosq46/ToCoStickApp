@@ -2,8 +2,10 @@ package com.example.kohki.tocostickapp;
 
 import android.app.Activity;
 import android.app.PendingIntent;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -29,8 +31,10 @@ public class ChatActivity extends Activity {
     String TAG = "TWE_Line";
     Handler mHandler = new Handler();
     final int SERIAL_BAUDRATE = FTDriver.BAUD115200;
-
     private boolean mStop = false;
+
+    SensorDBHelper dbHelper = new SensorDBHelper(ChatActivity.this);
+    SQLiteDatabase db = dbHelper.getWritableDatabase();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -83,6 +87,9 @@ public class ChatActivity extends Activity {
                             message += "\n\n" + str1;
                             tv_message.setText(str1);//"\nlen: " + fin_len +
                             toaster(str1);
+
+
+
                         }
                     });
                 }else{
