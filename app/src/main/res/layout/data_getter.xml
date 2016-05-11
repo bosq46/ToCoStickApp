@@ -19,7 +19,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="000000000000000000000000000000000000"
+            android:text="no data"
             android:id="@+id/receivedData" />
     </LinearLayout>
 
@@ -38,7 +38,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Success or Failed"
+            android:text="---"
             android:id="@+id/textView6"
             android:layout_marginLeft="40dp" />
     </LinearLayout>

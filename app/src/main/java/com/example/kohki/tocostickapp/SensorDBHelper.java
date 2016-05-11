@@ -8,32 +8,35 @@ import android.database.sqlite.SQLiteOpenHelper;
  * Created by Kohki on 2016/04/14.
  */
 public class SensorDBHelper extends SQLiteOpenHelper {// コンストラクタ
-    public SensorDBHelper( Context context ){
-        // 任意のデータベースファイル名と、バージョンを指定する
-        super( context, "sample.db", null, 1 );
-    }
-    /**
-     * このデータベースを初めて使用する時に実行される処理
-     * テーブルの作成や初期データの投入を行う
-     */
-    @Override
-    public void onCreate( SQLiteDatabase db ) {
-        // テーブルを作成。SQLの文法は通常のSQLiteと同様
-        db.execSQL(
-                "create table name_book_table ("
-                        + "_id  integer primary key autoincrement not null, "
-                        + "name text not null, "
-                        + "age  integer )" );
-        // 必要なら、ここで他のテーブルを作成したり、初期データを挿入したりする
-    }
+        static final String DB_NAME = "sqlite_sample.db";   // DB名
+        static final int DB_VERSION = 1;                // DBのVersion
 
+        // SQL文をStringに保持しておく
+        static String CREATE_TABLE = null;
+        static final String DROP_TABLE = "drop table ";
 
-    /**
-     * アプリケーションの更新などによって、データベースのバージョンが上がった場合に実行される処理
-     * 今回は割愛
-     */
-    @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // 取りあえず、空実装でよい
+        // コンストラクタ
+        // CREATE用のSQLを取得する
+        public SensorDBHelper(Context mContext, String sql){
+            super(mContext,DB_NAME,null,DB_VERSION);
+            CREATE_TABLE = sql;
+        }
+
+        public SensorDBHelper(Context context, String name,
+                                  SQLiteDatabase.CursorFactory factory, int version) {
+            super(context, name, factory, version);
+        }
+
+        // DBが存在しない状態でOpenすると、onCreateがコールされる
+        // 新規作成されたDBのインスタンスが付与されるので、テーブルを作成する。
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+            db.execSQL(CREATE_TABLE);
+        }
+
+        // コンストラクタで指定したバージョンと、参照先のDBのバージョンに差異があるときにコールされる
+        // 今回バージョンは１固定のため、処理は行わない。
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        }
     }
-}

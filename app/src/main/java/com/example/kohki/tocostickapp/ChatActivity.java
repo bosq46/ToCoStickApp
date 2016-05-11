@@ -1,6 +1,7 @@
 package com.example.kohki.tocostickapp;
 
 import android.app.Activity;
+import android.app.Application;
 import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
@@ -33,17 +34,19 @@ public class ChatActivity extends Activity {
     final int SERIAL_BAUDRATE = FTDriver.BAUD115200;
     private boolean mStop = false;
 
-    SensorDBHelper dbHelper = new SensorDBHelper(ChatActivity.this);
-    SQLiteDatabase db = dbHelper.getWritableDatabase();
-
+    String TABLE_NAME = "chat_table";
+    int FIELD_ID = 1;
+    String FIELD_DATA = "1000";
+   // private final String CREATE_TABLE_SQL = "CREATE TABLE "+TABLE_NAME+" ( "+FIELD_ID+" INTEGER PRIMARY KEY AUTOINCREMENT, "+FIELD_DATA+" TEXT NOT NULL );";
+    private final String CREATE_TABLE_SQL = "CREATE TABLE "+ TABLE_NAME +" (_id INTEGER PRIMARY KEY, comment TEXT)”)";
+    private final String DROP_TABLE_SQL   = "drop table"+    TABLE_NAME +";";
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.chat);
+
         //---
-
         mSerial = new FTDriver((UsbManager)getSystemService(Context.USB_SERVICE));
-
         // [FTDriver] setPermissionIntent() before begin()
         PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(
                 ACTION_USB_PERMISSION), 0);
@@ -56,6 +59,11 @@ public class ChatActivity extends Activity {
         else {
             Toast.makeText(this, "serial connection failed", Toast.LENGTH_SHORT).show();
         }
+
+        //--sql
+        SensorDBHelper hlpr = new SensorDBHelper(getApplicationContext(), CREATE_TABLE_SQL);
+        SQLiteDatabase mydb = hlpr.getWritableDatabase();
+        mydb.execSQL(CREATE_TABLE_SQL);
     }
     public void toaster(String message){
         Toast.makeText(ChatActivity.this, message, Toast.LENGTH_SHORT).show();
@@ -87,8 +95,6 @@ public class ChatActivity extends Activity {
                             message += "\n\n" + str1;
                             tv_message.setText(str1);//"\nlen: " + fin_len +
                             toaster(str1);
-
-
 
                         }
                     });

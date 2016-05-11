@@ -18,6 +18,14 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+
 import jp.ksksue.driver.serial.FTDriver;
 
 public class HomeActivity extends AppCompatActivity {
@@ -74,14 +82,17 @@ public class HomeActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
     }
+
+
     public void changeBtnAccesser(boolean is_access){
-        btnBegin        = (Button) findViewById(R.id.btnBegin);
-        btnEnd          = (Button) findViewById(R.id.btnEnd);
+        btnBegin          = (Button) findViewById(R.id.btnBegin);
+        btnEnd            = (Button) findViewById(R.id.btnEnd);
         btnDataGetter    = (Button) findViewById(R.id.btn_data_getter);
         btnPseudoArduino = (Button) findViewById(R.id.btn_pse_ard);
-        btnChat         = (Button) findViewById(R.id.chat);
-        mText = (TextView) findViewById(R.id.textView1);
+        btnChat           = (Button) findViewById(R.id.chat);
+        mText             = (TextView) findViewById(R.id.textView1);
 
         btnDataGetter.setEnabled(is_access);
         btnPseudoArduino.setEnabled(is_access);
@@ -98,17 +109,19 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
     public void onBeginClick(View view) {
+       // testOfWrite();
+
         // [FTDriver] Open USB Serial
         if(mSerial.begin(FTDriver.BAUD115200)) {
             changeBtnAccesser(true);
-            String wbuf = ":788001000F0000000000000000F8\r\n";
-            mSerial.write(wbuf.getBytes());
+    //        String wbuf = ":788001000F0000000000000000F8\r\n";
+    //        mSerial.write(wbuf.getBytes());
         }
     }
     public void onEndClick(View view) {
         changeBtnAccesser(false);
-        String wbuf = ":788001000F0000000000000000F8\r\n";
-        mSerial.write(wbuf.getBytes());
+    //    String wbuf = ":788001000F0000000000000000F8\r\n";
+    //    mSerial.write(wbuf.getBytes());
         mSerial.end();
     }
 
@@ -135,4 +148,16 @@ public class HomeActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
     */
+    private void testOfWrite(){
+        String readmess = null;
+        FileHandler fh = new FileHandler("write_test.txt", this.getApplicationContext());
+        try {
+            fh.saveFile("起動！");
+            readmess = fh.readFile();
+        }catch (Exception e){e.printStackTrace();}
+        if(readmess != null)
+            Toast.makeText(this, readmess, Toast.LENGTH_SHORT).show();
+        else
+            Toast.makeText(this, "null!", Toast.LENGTH_SHORT).show();
+    }
 }

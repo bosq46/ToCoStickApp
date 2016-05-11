@@ -7,8 +7,13 @@ import android.content.Intent;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
 
 import jp.ksksue.driver.serial.FTDriver;
 
@@ -20,13 +25,14 @@ public class DataGetter extends Activity{
     FTDriver mSerial;
     private static final String ACTION_USB_PERMISSION =  "jp.ksksue.tutorial.USB_PERMISSION";//"com.example.kohki.USB_PERMISSION";
     private boolean mRunningMainLoop = false;
-    final int mOutputType = 0;
-    final boolean SHOW_LOGCAT = false;
+    final   int     mOutputType       = 0;
+    final   boolean SHOW_LOGCAT      = false;
     String TAG = "TWE_Line";
-    Handler mHandler = new Handler();
+    Handler mHandler;
     final int SERIAL_BAUDRATE = FTDriver.BAUD115200;
     private boolean mStop = false;
 
+    private FileHandler fileHandler_;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,10 +49,12 @@ public class DataGetter extends Activity{
         } else {
             Toast.makeText(this, "serial connection failed", Toast.LENGTH_SHORT).show();
         }
+        mHandler = new Handler();
 
+        fileHandler_ = new FileHandler("sensor_data.txt", this.getApplicationContext());
     }
-    public void toaster(String message){
-        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+    private void toaster(String message){
+        Toast.makeText(this.getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
     private void mainloop() {
         mRunningMainLoop = true;
@@ -57,35 +65,60 @@ public class DataGetter extends Activity{
         public void run() {
             int i,len;
             // [FTDriver] Create Read Buffer
-            //        byte[] rbuf = new byte[4096]; // 1byte <--slow-- [Transfer Speed] --fast--> 4096 byte
-            byte[] rbuf = new byte[4096]; // 1byte <--slow-- [Transfer Speed] --fast--> 4096 byte
-
+            //  byte[] rbuf = new byte[4096]; // 1byte <--slow-- [Transfer Speed] --fast--> 4096 byte
+            final byte[] rbuf = new byte[4096];   // 1byte <--slow-- [Transfer Speed] --fast--> 4096 byte
             final TextView tv_receivedData = (TextView) findViewById(R.id.receivedData);
+            final ArrayList arrayList = new ArrayList();
+
             for(;;){
                 // [FTDriver] Read from USB Serial
                 len = mSerial.read(rbuf);
-                final String str1 = new String(rbuf);
-                final int fin_len = len;
 
-                if(len > 0) {
+                byte[] bytes_message = new byte[len];
+
+            //    final byte[] hex_message = bytes_message;
+                  if(len > 0) {
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
+                            String message = "";
+                           // for (byte b : hex_message) {
+                            for (byte b : rbuf) {
+                                if(b != 0x00)
+                                    message += Integer.toHexString(0xff & b)+" ";
+                            }
+/*
+                            try {
+                                message = new String(hex_message, "UTF-8");
+                            }catch (Exception e){e.printStackTrace();}
+*/
+                            writeData(message);
+                            arrayList.add(message);
+
                             tv_receivedData.setText("");
-                            tv_receivedData.setText("Message: " + str1);
-                            toaster(str1);
+                            String messages = "";
+                            for(int i=0;i<arrayList.size();i++){
+                                messages += (String)arrayList.get(i) +"\n";
+                            }
+                            tv_receivedData.setText(message);//messages
                         }
                     });
                 }else{
-                    mHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            tv_receivedData.setText("");
-                            tv_receivedData.setText("Message: " + str1);
-                        }
-                    });
+             //       toaster("no message.");
                 }
             }
         }
     };
+    private void writeData(String message){
+        String readmessages = null;
+        try {
+            fileHandler_.saveFile(message);
+            readmessages = fileHandler_.readFile();
+        }catch (Exception e){e.printStackTrace();}
+        if(readmessages != null)
+            Toast.makeText(this, readmessages, Toast.LENGTH_SHORT).show();
+        else
+            Toast.makeText(this, "This file is null.", Toast.LENGTH_SHORT).show();
+
+    }
 }
