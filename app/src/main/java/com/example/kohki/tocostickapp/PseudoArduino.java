@@ -152,7 +152,8 @@ public class PseudoArduino extends Activity {
                 for (int i = 0; i < send_data.length; i++) {
                     String wbuf = send_data[i] + "\r\n";
                     // [FTDriver] Wirte to USB Serial
-                    mSerial.write(wbuf.getBytes());
+                    byte[] a = {127, 126,  125};
+                    mSerial.write(a);//wbuf.getBytes()
                     //Toast.makeText(getApplicationContext(), "END" + send_data.length, Toast.LENGTH_SHORT).show(); :CANT USE
                     try {
                         int period = Integer.parseInt(send_period.getText()+"");

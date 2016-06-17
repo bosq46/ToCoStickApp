@@ -120,9 +120,15 @@ public class HomeActivity extends AppCompatActivity {
     }
     public void onEndClick(View view) {
         changeBtnAccesser(false);
-    //    String wbuf = ":788001000F0000000000000000F8\r\n";
-    //    mSerial.write(wbuf.getBytes());
-        mSerial.end();
+        //    String wbuf = ":788001000F0000000000000000F8\r\n";
+        //    mSerial.write(wbuf.getBytes());
+        if (mSerial.isConnected()) {
+            Toast.makeText(this,"end()",Toast.LENGTH_SHORT).show();
+            mSerial.end();
+        }else{
+            Toast.makeText(this,"ended",Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     /*  default program
@@ -146,18 +152,5 @@ public class HomeActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-    */
-    private void testOfWrite(){
-        String readmess = null;
-        FileHandler fh = new FileHandler("write_test.txt", this.getApplicationContext());
-        try {
-            fh.saveFile("起動！");
-            readmess = fh.readFile();
-        }catch (Exception e){e.printStackTrace();}
-        if(readmess != null)
-            Toast.makeText(this, readmess, Toast.LENGTH_SHORT).show();
-        else
-            Toast.makeText(this, "null!", Toast.LENGTH_SHORT).show();
-    }
+    }*/
 }

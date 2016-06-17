@@ -39,6 +39,7 @@ public class FileHandler extends AppCompatActivity {
             // ストリームを開く
             FileOutputStream output = context_.openFileOutput(file_name_, MODE_APPEND);
             // 書き込み
+            sentence += "\n";
             output.write(sentence.getBytes());
            // ストリームを閉じる
             output.close();
@@ -53,10 +54,12 @@ public class FileHandler extends AppCompatActivity {
             // ストリームを開く
             FileInputStream input = context_.openFileInput(file_name_);
             // 読み込み
-            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(input, "UTF-8"));
             StringBuffer strBuffer = new StringBuffer();
-            String line;
+            String       line      = null;
+
             while ((line = reader.readLine()) != null) {
+                line += "\n";
                 strBuffer.append(line);
             }
             text = strBuffer.toString();
