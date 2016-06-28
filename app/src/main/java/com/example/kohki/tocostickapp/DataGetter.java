@@ -37,7 +37,7 @@ public class DataGetter extends Activity{
     private boolean isMainLoopRunning = false;
     String TAG = "TWE_Line";
     Handler mHandler;
-    final int SERIAL_BAUDRATE = FTDriver.BAUD115200;
+    final int SERIAL_BAUDRATE = FTDriver.BAUD9600;
     private boolean mStop = false;
 
     private FileHandler fileHandler_;
@@ -76,10 +76,9 @@ public class DataGetter extends Activity{
         public void run() {
             int i,len;
             // [FTDriver] Create Read Buffer
-            //  byte[] rbuf = new byte[4096]; // 1byte <--slow-- [Transfer Speed] --fast--> 4096 byte
-            final byte[] rbuf = new byte[20];   // 1byte <--slow-- [Transfer Speed] --fast--> 4096 byte
+            final byte[] rbuf = new byte[5];   // 1byte <--slow-- [Transfer Speed] --fast--> 4096 byte
             final TextView tv_receivedData = (TextView) findViewById(R.id.receivedData);
-            //TODO:byte[] rbuf = new byte[] => try
+
             do{
                 // [FTDriver] Read from USB Serial
                 len = mSerial.read(rbuf);
@@ -89,35 +88,39 @@ public class DataGetter extends Activity{
                         @Override
                         public void run() {
                             String received_data = "";
-                            for (byte b : rbuf) {
-                              //  if (b != 0x00)
-                                    received_data+= Integer.toHexString(0xff & b);
-                            }
-                            writeData(received_data);
+                            StringBuilder sb = new StringBuilder(2*rbuf.length);
 
+                            int i=0;
+                            for (byte b : rbuf) {
+                                sb.append(String.format("%02x", b & 0xff));
+                                received_data += i+":"+String.format("%02x", b & 0xff)+"\n";
+                                i++;
+                            }
+                            writeData(sb);
                             tv_receivedData.setText("");
                             tv_receivedData.setText(received_data);
 
                             //DESC: send message
         //                    mSerial.write(rbuf);
+
                             updateFileLinesView();
                         }
                     });
                 }else{
-                  //  toaster("no message.");
+
                 }
             }while (isMainLoopRunning);
         }
     };
 
-    private void writeData(String message) {
+    private void writeData(CharSequence message) {
         String readmessages = null;
         // 現在の時刻を取得
         Date date = new Date();
         // 表示形式を設定
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy'/'MM'/'dd'/' kk':'mm':'ss':'");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy'/'MM'/'dd kk':'mm':'ss");
         try {
-            fileHandler_.saveFile(sdf.format(date) +","+ message);//savefile()内は、書き込みの最後に改行を自動で挿入される
+            fileHandler_.saveFile(sdf.format(date) +" "+ message);//savefile()内は、書き込みの最後に改行を自動で挿入される
             readmessages = fileHandler_.readFile();
         } catch (Exception e) {
             e.printStackTrace();
@@ -127,9 +130,6 @@ public class DataGetter extends Activity{
         }else {
             Toast.makeText(this, "This file is null.", Toast.LENGTH_SHORT).show();
         }
-    }
-    private void toaster(String toast_message){
-        Toast.makeText(context_, toast_message, Toast.LENGTH_SHORT).show();
     }
 
     private void updateFileLinesView(){
