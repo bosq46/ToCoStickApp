@@ -9,6 +9,7 @@ import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.KeyEvent;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -33,13 +34,22 @@ import android.widget.ListView;
 public class DataGetter extends Activity{
 
     FTDriver mSerial;
-    private static final String ACTION_USB_PERMISSION =  "jp.ksksue.tutorial.USB_PERMISSION";//"com.example.kohki.USB_PERMISSION";
+    private static final String ACTION_USB_PERMISSION =  "com.example.kohki.USB_PERMISSION";//jp.ksksue.tutorial.USB_PERMISSION";
     private boolean isMainLoopRunning = false;
     String TAG = "TWE_Line";
     Handler mHandler;
-    final int SERIAL_BAUDRATE = FTDriver.BAUD9600;
-    private boolean mStop = false;
+    final int SERIAL_BAUDRATE = FTDriver.BAUD115200;
+/*
+  BAUD9600
+ BAUD14400
+ BAUD19200
+ BAUD38400
+ BAUD57600
+BAUD115200
+BAUD230400
+*/
 
+    private boolean mStop = false;
     private FileHandler fileHandler_;
     private Context context_;
 
@@ -76,7 +86,7 @@ public class DataGetter extends Activity{
         public void run() {
             int i,len;
             // [FTDriver] Create Read Buffer
-            final byte[] rbuf = new byte[5];   // 1byte <--slow-- [Transfer Speed] --fast--> 4096 byte
+            final byte[] rbuf = new byte[24];   // 1byte <--slow-- [Transfer Speed] --fast--> 4096 byte
             final TextView tv_receivedData = (TextView) findViewById(R.id.receivedData);
 
             do{
@@ -87,21 +97,22 @@ public class DataGetter extends Activity{
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            String received_data = "";
-                            StringBuilder sb = new StringBuilder(2*rbuf.length);
-
-                            int i=0;
-                            for (byte b : rbuf) {
-                                sb.append(String.format("%02x", b & 0xff));
-                                received_data += i+":"+String.format("%02x", b & 0xff)+"\n";
-                                i++;
+                            StringBuilder sb_hexbuf = new StringBuilder(2*rbuf.length);
+                            String str_buf;
+                            for (int i=0; i<rbuf.length; i++) {
+                                if (i == 0) {
+                                    str_buf = String.format("%02x", rbuf[i] & 0x0f); //cant use upper 4bit of first byte(upper 4bit is 0x03)
+                                }else{
+                                    str_buf = String.format("%02x", rbuf[i] & 0xff);
+                                }
+                                sb_hexbuf.append(str_buf);
                             }
-                            writeData(sb);
+                            writeData(sb_hexbuf);
                             tv_receivedData.setText("");
-                            tv_receivedData.setText(received_data);
-
-                            //DESC: send message
-        //                    mSerial.write(rbuf);
+                            rbuf[0] &= 0x0f;
+                          //  str_buf
+                            String s = new String(rbuf);
+                            tv_receivedData.setText(s);
 
                             updateFileLinesView();
                         }
@@ -114,6 +125,7 @@ public class DataGetter extends Activity{
     };
 
     private void writeData(CharSequence message) {
+     //   Toast.makeText(this,message+"",Toast.LENGTH_SHORT).show();
         String readmessages = null;
         // 現在の時刻を取得
         Date date = new Date();

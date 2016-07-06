@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.kohki.tocostickapp">
 
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -20,17 +21,20 @@
         </activity>
 
         <activity
-            android:name="com.example.kohki.tocostickapp.ChatActivity"
+            android:name=".ChatActivity"
             android:screenOrientation="portrait">
         </activity>
+
         <activity
-            android:name="com.example.kohki.tocostickapp.DataGetter"
+            android:name=".DataGetter"
             android:screenOrientation="portrait">
         </activity>
+
         <activity
-            android:name="com.example.kohki.tocostickapp.PseudoArduino"
+            android:name=".PseudoArduino"
             android:screenOrientation="portrait">
         </activity>
+
     </application>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
 </manifest>
