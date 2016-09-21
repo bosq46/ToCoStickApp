@@ -22,7 +22,7 @@ public class FileHandler extends AppCompatActivity {
     private String file_name_;
     private Context context_;
 
-    public FileHandler(String file_name, Context context){
+    public FileHandler(Context context, String file_name){
         file_name_ = file_name;
         context_ = context;
     }
