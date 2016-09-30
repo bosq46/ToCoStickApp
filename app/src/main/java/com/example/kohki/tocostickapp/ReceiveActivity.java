@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -32,22 +31,23 @@ BAUD115200
 BAUD230400
 */
 public class ReceiveActivity extends Activity{
-    private String TAG = "ReceiveAct";
-    FTDriver mSerial;
+    private static final String TAG = "ReceiveAct";
     private static final String ACTION_USB_PERMISSION =  "com.example.kohki.USB_PERMISSION";//jp.ksksue.tutorial.USB_PERMISSION";
-    private boolean isMainLoopRunning = false;
-    final int SERIAL_BAUDRATE = FTDriver.BAUD115200;
+    private static final int SERIAL_BAUDRATE = FTDriver.BAUD115200;
 
     private Context context_;
-    private Handler mHandler;
+    private FTDriver mSerial;
+    private boolean isMainLoopRunning = false;
+    private Handler      mHandler;
     private FileHandler  mFileHandler;
     private DataAnalyzer mDataAnalyzer;
+
     private int commuStep = 1;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.data_getter);
+        setContentView(R.layout.activity_receive);
 
         mSerial = new FTDriver((UsbManager)getSystemService(Context.USB_SERVICE));
         // [FTDriver] setPermissionIntent() before begin()
@@ -96,8 +96,7 @@ public class ReceiveActivity extends Activity{
                                 str_buf = String.format("%02x", rbuf[i] & 0xff);
                                 sb_hexbuf.append(str_buf);
                             }
-                            writeData(sb_hexbuf);
-                            tv_receivedData.setText("");
+                            writeHexData(sb_hexbuf);
                             tv_receivedData.setText(sb_hexbuf);
                             updateFileLinesView();
 
@@ -116,7 +115,7 @@ public class ReceiveActivity extends Activity{
         }
     };
 
-    private void writeData(CharSequence message) {
+    private void writeHexData(CharSequence message) {
     //   Toast.makeText(this,message+"",Toast.LENGTH_SHORT).show();
         String readmessages = null;
         // 現在の時刻を取得

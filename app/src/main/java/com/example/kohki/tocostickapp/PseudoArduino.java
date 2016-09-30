@@ -40,7 +40,7 @@ public class PseudoArduino extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.pseudo_arduino);
+        setContentView(R.layout.activity_pseudo_arduino);
 
         final EditText et_sendData = (EditText) findViewById(R.id.sendData);
         et_sendData.setText(str_send_data_);

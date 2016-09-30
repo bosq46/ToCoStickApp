@@ -24,34 +24,27 @@ import jp.ksksue.driver.serial.FTDriver;
  */
 public class ChatActivity extends Activity {
 
-    FTDriver mSerial;
+    private static final String TAG = "ChatAct";
     private static final String ACTION_USB_PERMISSION =  "jp.ksksue.tutorial.USB_PERMISSION";//"com.example.kohki.USB_PERMISSION";
-    private boolean mRunningMainLoop = false;
-    final int mOutputType = 0;
-    final boolean SHOW_LOGCAT = false;
-    String TAG = "TWE_Line";
-    Handler mHandler = new Handler();
-    final int SERIAL_BAUDRATE = FTDriver.BAUD115200;
-    private boolean mStop = false;
+    private final int SERIAL_BAUDRATE = FTDriver.BAUD115200;
 
-    String TABLE_NAME = "chat_table";
-    int FIELD_ID = 1;
-    String FIELD_DATA = "1000";
-   // private final String CREATE_TABLE_SQL = "CREATE TABLE "+TABLE_NAME+" ( "+FIELD_ID+" INTEGER PRIMARY KEY AUTOINCREMENT, "+FIELD_DATA+" TEXT NOT NULL );";
-    private final String CREATE_TABLE_SQL = "CREATE TABLE "+ TABLE_NAME +" (_id INTEGER PRIMARY KEY, comment TEXT)”)";
-    private final String DROP_TABLE_SQL   = "drop table"+    TABLE_NAME +";";
+    private FTDriver mSerial;
+    private boolean isMainLoopRunning = false;
+    private Handler      mHandler;
+    private FileHandler  mFileHandler;
+    private DataAnalyzer mDataAnalyzer;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.chat);
+        setContentView(R.layout.activity_chat);
 
-        //---
         mSerial = new FTDriver((UsbManager)getSystemService(Context.USB_SERVICE));
         // [FTDriver] setPermissionIntent() before begin()
-        PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(
-                ACTION_USB_PERMISSION), 0);
+        PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
         mSerial.setPermissionIntent(permissionIntent);
 
+        mHandler = new Handler();
         if(mSerial.begin(SERIAL_BAUDRATE)) {
             mainloop();
             Toast.makeText(this, "serial connection begin", Toast.LENGTH_SHORT).show();
@@ -59,18 +52,13 @@ public class ChatActivity extends Activity {
         else {
             Toast.makeText(this, "serial connection failed", Toast.LENGTH_SHORT).show();
         }
-
-        //--sql
-        SensorDBHelper hlpr = new SensorDBHelper(getApplicationContext(), CREATE_TABLE_SQL);
-        SQLiteDatabase mydb = hlpr.getWritableDatabase();
-        mydb.execSQL(CREATE_TABLE_SQL);
     }
     public void toaster(String message){
         Toast.makeText(ChatActivity.this, message, Toast.LENGTH_SHORT).show();
     }
 
     private void mainloop() {
-        mRunningMainLoop = true;
+        isMainLoopRunning = true;
         new Thread(mLoop).start();
     }
     private Runnable mLoop = new Runnable() {
@@ -84,25 +72,19 @@ public class ChatActivity extends Activity {
             for(;;){
                 // [FTDriver] Read from USB Serial
                 len = mSerial.read(rbuf);
-                final String str1 = new String(rbuf);
+                final String str_receive_data = new String(rbuf);
                 final int fin_len = len;
                 if(len > 0) {
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            String message = (String)tv_message.getText();
+                         /*   String message = (String)tv_message.getText();
                             tv_message.setText("");
                             message += "\n\n" + str1;
-                            tv_message.setText(str1);//"\nlen: " + fin_len +
-                            toaster(str1);
+                            */
+                            tv_message.setText(str_receive_data);//"\nlen: " + fin_len +
+                            toaster(str_receive_data);
 
-                        }
-                    });
-                }else{
-                    mHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                        //    tv_message.setText("\nlen: " + fin_len + "\nMessage: " + str1);
                         }
                     });
                 }

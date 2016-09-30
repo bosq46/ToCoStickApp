@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayou
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.8">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="送信するデータ："
+            android:id="@+id/textView"
+            android:layout_marginLeft="5dp" />
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textMultiLine"
+            android:ems="100"
+            android:id="@+id/sendData"
+            android:editable="true"
+            android:enabled="true" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_weight="0.2"
+        android:gravity="center"
+        android:weightSum="1"
+        android:id="@+id/controller">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingRight="20dp"
+                    android:id="@+id/data_number">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/text_num"
+                        android:layout_gravity="center_vertical"
+                        android:text="データ数："
+                        android:editable="false"
+                        android:enabled="true"
+                        android:textSize="20dp" />
+
+                    <Button
+                        android:layout_width="40dp"
+                        android:layout_height="wrap_content"
+                        android:text="&lt;"
+                        android:id="@+id/minus_one" />
+
+                    <EditText
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/cnt_send"
+                        android:layout_gravity="center_vertical"
+                        android:paddingLeft="20dp"
+                        android:paddingRight="20dp"
+                        android:text="5"
+                        android:editable="false"
+                        android:enabled="true" />
+
+                    <Button
+                        android:layout_width="40dp"
+                        android:layout_height="wrap_content"
+                        android:text=">"
+                        android:id="@+id/plus_one" />
+
+                </LinearLayout>
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="送信データ作成"
+                    android:id="@+id/btn_create_data" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="20dp"
+                android:id="@+id/data_period">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/text_second"
+                    android:layout_gravity="center_vertical"
+                    android:text="周期："
+                    android:editable="false"
+                    android:enabled="true"
+                    android:textSize="20dp" />
+
+                <Button
+                    android:layout_width="40dp"
+                    android:layout_height="wrap_content"
+                    android:text="&lt;"
+                    android:id="@+id/minus_one_second" />
+
+                <EditText
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/cnt_send_period"
+                    android:layout_gravity="center_vertical"
+                    android:paddingLeft="20dp"
+                    android:paddingRight="20dp"
+                    android:text="2"
+                    android:editable="false"
+                    android:enabled="true" />
+
+                <Button
+                    android:layout_width="40dp"
+                    android:layout_height="wrap_content"
+                    android:text=">"
+                    android:id="@+id/plus_one_second" />
+
+            </LinearLayout>
+            <Switch
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="通信"
+                android:id="@+id/sw_connect"
+                android:clickable="true"
+                android:onClick="onSwitchClicked"
+                android:contextClickable="true"
+                android:enabled="true"
+                android:paddingLeft="20dp"
+                android:checked="false"
+                android:layout_gravity="center" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayou>

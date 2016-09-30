@@ -43,10 +43,8 @@ public class HomeActivity extends AppCompatActivity {
         // hide title bar. This have to write setContentView() .  err:
        // requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_home);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
-        //--- here ---
+
         changeBtnAccesser(false);
 
         btnBegin         = (Button) findViewById(R.id.btnBegin);
@@ -84,7 +82,6 @@ public class HomeActivity extends AppCompatActivity {
         });
 
     }
-
 
     public void changeBtnAccesser(boolean is_access){
         btnBegin          = (Button) findViewById(R.id.btnBegin);
@@ -130,5 +127,4 @@ public class HomeActivity extends AppCompatActivity {
         }
 
     }
-
 }
