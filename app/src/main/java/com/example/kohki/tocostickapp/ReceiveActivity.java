@@ -51,8 +51,7 @@ public class ReceiveActivity extends Activity{
 
         mSerial = new FTDriver((UsbManager)getSystemService(Context.USB_SERVICE));
         // [FTDriver] setPermissionIntent() before begin()
-        PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(
-                ACTION_USB_PERMISSION), 0);
+        PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
         mSerial.setPermissionIntent(permissionIntent);
 
         context_ = this;
