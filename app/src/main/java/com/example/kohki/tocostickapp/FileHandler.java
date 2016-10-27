@@ -19,41 +19,43 @@ import java.io.PrintWriter;
  * Created by Kohki on 2016/05/09.
  */
 public class FileHandler extends AppCompatActivity {
-    private String file_name_;
-    private Context context_;
+    private String strFileName = "bin_sensor_data.txt";
+    private String binFileName = "str_sensor_data.txt";
+    private Context mContext;
 
     public FileHandler(Context context, String file_name){
-        file_name_ = file_name;
-        context_ = context;
+        mContext = context;
     }
-    public void  saveFile(String sentence){
-     //   Toast.makeText(context_, file_name_, Toast.LENGTH_LONG).show();
-        outputFile(sentence);
-    }
-    public String readFile(){
-             return inputFile();
-    }
-
-    private void outputFile(String sentence){
+    public void  writeStrFile(String sentence){
         try {
             // ストリームを開く
-            FileOutputStream output = context_.openFileOutput(file_name_, MODE_APPEND);
+            FileOutputStream output = mContext.openFileOutput(strFileName, MODE_APPEND);
             // 書き込み
             sentence += "\n";
             output.write(sentence.getBytes());
-           // ストリームを閉じる
+            // ストリームを閉じる
             output.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    // ファイルを読み出し
-    private String inputFile() {
+    public boolean writeBinFile(char[] FileName){
+        FileOutputStream out;
+        try {
+            out = new FileOutputStream(binFileName);
+            for(int i=0;i<FileName.length;i++) {
+                out.write(FileName[i]);
+            }
+            out.close();
+            return true;
+        }catch(IOException e){
+            return false;
+        }
+    }
+    public String readStrFile(){
         String text = null;
         try {
-            // ストリームを開く
-            FileInputStream input = context_.openFileInput(file_name_);
-            // 読み込み
+            FileInputStream input = mContext.openFileInput(strFileName);
             BufferedReader reader = new BufferedReader(new InputStreamReader(input, "UTF-8"));
             StringBuffer strBuffer = new StringBuffer();
             String       line      = null;
@@ -71,5 +73,22 @@ public class FileHandler extends AppCompatActivity {
             e.printStackTrace();
         }
         return text;
+    }
+    public boolean readBinFile(){
+        FileInputStream in;
+        try {
+            in = new FileInputStream(binFileName);
+            while (true) {
+                int b = in.read();
+                if (b == -1) {
+                    break;
+                }
+                System.out.print(Integer.toHexString(b) + " ");
+            }
+            in.close();
+            return true;
+        }catch(Exception e){
+            return false;
+        }
     }
 }

@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -17,6 +18,7 @@ import jp.ksksue.driver.serial.FTDriver;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Created by Kohki on 2016/07/11.
@@ -35,7 +37,7 @@ public class ReceiveActivity extends Activity{
     private static final String ACTION_USB_PERMISSION =  "com.example.kohki.USB_PERMISSION";//jp.ksksue.tutorial.USB_PERMISSION";
     private static final int SERIAL_BAUDRATE = FTDriver.BAUD115200;
 
-    private Context context_;
+    private Context context;
     private FTDriver mSerial;
     private boolean isMainLoopRunning = false;
     private Handler      mHandler;
@@ -44,17 +46,18 @@ public class ReceiveActivity extends Activity{
 
     private int commuStep = 1;
 
+    private byte[] receiveData;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_receive);
+        context = this;
 
         mSerial = new FTDriver((UsbManager)getSystemService(Context.USB_SERVICE));
         // [FTDriver] setPermissionIntent() before begin()
         PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
         mSerial.setPermissionIntent(permissionIntent);
 
-        context_ = this;
         mHandler = new Handler();
         mFileHandler = new FileHandler(this, "sensor_data.txt");
         mDataAnalyzer = new DataAnalyzer(this);
@@ -70,74 +73,107 @@ public class ReceiveActivity extends Activity{
 
     private void startThread() {
         isMainLoopRunning = true;
-        new Thread(mLoop).start();
+        new Thread(new ReceiveThread()).start();
     }
-    private Runnable mLoop = new Runnable() {
+    class ReceiveThread implements Runnable{
         @Override
         public void run() {
-            int i,len;
-            // [FTDriver] Create Read Buffer
-            final byte[] rbuf = new byte[64];   // 1byte <--slow-- [Transfer Speed] --fast--> 4096 byte
-            final TextView tv_receivedData = (TextView) findViewById(R.id.receivedData);
+            int i;
 
             do{
-                len = mSerial.read(rbuf);
-                if(len > 0) {
-                    rbuf[0] &= 0x0f; //cant use upper 4bit of first byte(upper 4bit is 0x03)
-
+                final byte[] rbuf = new byte[5];   // 1byte <--slow-- [Transfer Speed] --fast--> 4096 byte
+                final TextView tv_receivedData = (TextView) findViewById(R.id.receivedData);
+                //context 参照できない(post 内で書く)
+                // [FTDriver] Create Read Buffer
+                final int len = mSerial.read(rbuf);
+                if (len > 0) {
+                    //--
                     mHandler.post(new Runnable() { //viewの変更はmHandlerから行う。
                         @Override
                         public void run() {
-                            // byte[] => String
-                            StringBuilder sb_hexbuf = new StringBuilder(2*rbuf.length);
-                            String str_buf;
-                            for (int i=0; i<rbuf.length; i++) {
-                                str_buf = String.format("%02x", rbuf[i] & 0xff);
-                                sb_hexbuf.append(str_buf);
+                            if(true){//(rbuf[0] & 0xf0) == 0x30 ) {
+                                rbuf[0] &= 0x0f; //cant use upper 4bit of first byte(upper 4bit is 0x03)
+                        //        rbuf[len] = 0;
+
+                                // byte[] => String
+                                StringBuilder sb_hexbuf = new StringBuilder(2 * rbuf.length);
+                                char[]  chrs_receive_data = new char[rbuf.length];
+                                char receive_datum;
+                                String log = "";
+                                for (int i = 0; i < rbuf.length; i++) {//rbuf.length
+                                    receive_datum = convByteToChar(rbuf[i]);
+                                    chrs_receive_data[i]  = receive_datum;
+                                    String hex_receive_data = Integer.toHexString(receive_datum);//ANO: String.format("%02x", chr_receive_data & 0xff)
+                               //     sb_hexbuf.append(hex_receive_data);
+                                    sb_hexbuf.append(Integer.toHexString((receive_datum & 0xF0) >> 4));
+                                    sb_hexbuf.append(Integer.toHexString(receive_datum & 0xF));
+
+                                    log += hex_receive_data;
+                                    if (i == rbuf.length-1)
+                                        log += "(" + i + "," + (int)receive_datum + ")";
+                                    else
+                                        log += "(" + i + "," + (int)receive_datum+ "),";
+
+                                }
+                                try {
+                                    String date = new String(rbuf, "ASCII");
+                                }catch (Exception e){}
+                                tv_receivedData.setText(log);
+                                writeHexData(sb_hexbuf);
+                                updateFileLinesView();
+                            }else {
+                                Toast.makeText(context,"not:[0]"+rbuf[0]+",[1]"+rbuf[1],Toast.LENGTH_SHORT).show();
                             }
-                            writeHexData(sb_hexbuf);
-                            tv_receivedData.setText(sb_hexbuf);
-                            updateFileLinesView();
-
-
-                            byte[] currect_date = mDataAnalyzer.firstStep(rbuf).getBytes();
+                            /*     byte[] currect_date = mDataAnalyzer.firstStep(rbuf).getBytes();
                             if(currect_date.length > 0){
                                 Toast.makeText(context_, "current_date", Toast.LENGTH_SHORT).show();
-                                mSerial.write(currect_date);
+                            mSerial.write(currect_date);
                             }
+                            */
                         }
                     });
-
-
-                }else{}
-            }while (isMainLoopRunning);
+                }
+/*
+                try {
+                    Thread.sleep(4900);
+                }catch (InterruptedException e){
+                    Toast.makeText(context,e+"",Toast.LENGTH_SHORT).show();
+                }
+  */          }while (isMainLoopRunning);
         }
-    };
-
+    }
     private void writeHexData(CharSequence message) {
-    //   Toast.makeText(this,message+"",Toast.LENGTH_SHORT).show();
+     //  Toast.makeText(this,message+"",Toast.LENGTH_SHORT).show();
         String readmessages = null;
         // 現在の時刻を取得
         Date date = new Date();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy'/'MM'/'dd EEE kk':'mm':'ss");//Arduino: V2016/07/11 SUN 00:37:30
         try {
-            mFileHandler.saveFile(sdf.format(date) +" "+ message);//savefile()内は、書き込みの最後に改行を自動で挿入される
-            readmessages = mFileHandler.readFile();
+            mFileHandler.writeStrFile(sdf.format(date) +" "+ message);//savefile()内は、書き込みの最後に改行を自動で挿入される
+            readmessages = mFileHandler.readStrFile();
         } catch (Exception e) {
             e.printStackTrace();
         }
         if (readmessages != null) {
-            //   Toast.makeText(this, readmessages, Toast.LENGTH_SHORT).show();
+        //    Toast.makeText(this, readmessages, Toast.LENGTH_SHORT).show();
         }else {
             Toast.makeText(this, "This file is null.", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public static char convByteToChar(byte byte_val){
+        char chr_val = (char) byte_val;
+        if((chr_val & 0x80) == 0x80){
+            chr_val += 256;
+        }
+        return chr_val;
     }
 
     private void updateFileLinesView(){
         String filelines = null;
         ArrayList<String> al_sensorData = new ArrayList<String>();
         try {
-            filelines = mFileHandler.readFile();
+            filelines = mFileHandler.readStrFile();
         }catch (Exception e){e.printStackTrace();}
 
         if(filelines != null) {
