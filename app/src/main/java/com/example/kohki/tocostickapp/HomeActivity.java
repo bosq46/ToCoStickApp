@@ -70,7 +70,7 @@ public class HomeActivity extends AppCompatActivity {
         });
         btnDataGetter.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Intent intent = new Intent(HomeActivity.this, ReceiveActivity.class);
+                Intent intent = new Intent(HomeActivity.this,ReceiveActivity.class);
                 startActivity(intent);
             }
         });
