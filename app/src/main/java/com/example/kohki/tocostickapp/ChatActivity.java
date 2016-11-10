@@ -31,7 +31,6 @@ public class ChatActivity extends Activity {
     private FTDriver mSerial;
     private boolean isMainLoopRunning = false;
     private Handler      mHandler;
-    private FileHandler  mFileHandler;
     private DataAnalyzer mDataAnalyzer;
 
     @Override
