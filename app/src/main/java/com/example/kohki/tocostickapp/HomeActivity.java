@@ -93,7 +93,7 @@ public class HomeActivity extends AppCompatActivity {
 
         btnDataGetter.setEnabled(is_access);
         btnPseudoArduino.setEnabled(is_access);
-        btnChat.setEnabled(is_access);
+    //    btnChat.setEnabled(is_access);
         btnBegin.setEnabled(!is_access);
         btnEnd.setEnabled(is_access);
 

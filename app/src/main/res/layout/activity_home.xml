@@ -90,7 +90,7 @@
         android:id="@+id/chat"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="チャット"
+        android:text="グラフのテスト"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp" />
 

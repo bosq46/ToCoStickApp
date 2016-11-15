@@ -3,32 +3,51 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:weightSum="1">
+    android:layout_height="match_parent">
+
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/chart"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="95"
+        android:elevation="0dp" />
 
     <LinearLayout
         android:orientation="horizontal"
-        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:weightSum="1">
+        android:layout_width="match_parent"
+        android:minHeight="25dp"
+        android:layout_weight="2">
 
-        <TextView
+        <Button
+        android:text="土壌水分"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btn_moisture"
+        android:layout_weight="1"
+            android:minHeight="48dp" />
+
+        <Button
+            android:text="日射量"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="受信メッセージ:"
-            android:id="@+id/name"
-            android:layout_gravity="center_horizontal"
-            android:textColor="#0141ff"
-            android:layout_weight="0.2"
-            android:paddingLeft="10dp" />
+            android:id="@+id/btn_radiation"
+            android:layout_weight="1" />
 
-        <TextView
+        <Button
+            android:text="湿度"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="no message"
-            android:id="@+id/message"
-            android:layout_gravity="right"
-            android:layout_weight="0.8" />
+            android:id="@+id/btn_humidity"
+            android:layout_weight="1" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_temperature"
+            android:layout_weight="1"
+            android:text="気温" />
+
     </LinearLayout>
+
 </LinearLayout>
