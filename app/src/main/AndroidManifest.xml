@@ -27,7 +27,7 @@
 
         <activity
             android:name=".ChatActivity"
-            >
+            android:configChanges="orientation|screenSize">
         </activity>
 
         <activity

@@ -37,7 +37,7 @@ public class FileHelper {
             e.printStackTrace();
         }
     }
-    public static boolean writeAsBinFile(String file_file, char[] data){
+    public static boolean writeAsBinFile(String file_file, int[] data){
         FileOutputStream out;
         try {
             out = new FileOutputStream(file_file);
@@ -125,7 +125,7 @@ public class FileHelper {
             elements[1] = all_elements[1];//temp
             elements[2] = all_elements[2];//humi
             elements[3] = all_elements[9];//radiation
-            elements[4] = all_elements[13];//TODO: where?
+            elements[4] = all_elements[12];//TODO: where?
             if (i <= 50) {
 //                Log.v("データ確認date", all_elements[0]);
             }

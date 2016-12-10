@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.hardware.usb.UsbManager;
@@ -63,7 +64,6 @@ public class ChatActivity extends Activity {
     private FTDriver mSerial;
     private boolean isMainLoopRunning = false;
     private Handler      mHandler;
-    private DataAnalyzer mDataAnalyzer;
 
     private boolean isPaintMoisture;
     private boolean isPaintRadiation;
@@ -320,6 +320,27 @@ public class ChatActivity extends Activity {
                 });
                 break;
         }
+    }
+    @Override
+    public void onResume(){
+        super.onResume();
+        createEnvChart();
+    }
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        /*
+        switch (newConfig.orientation) {
+            case Configuration.ORIENTATION_PORTRAIT:  // 縦長
+                // 処理
+                break;
+            case Configuration.ORIENTATION_LANDSCAPE:  // 横長
+                // 処理
+                break;
+            default:
+                break;
+        }*/
+        createEnvChart();
+        super.onConfigurationChanged(newConfig);
     }
 
 }

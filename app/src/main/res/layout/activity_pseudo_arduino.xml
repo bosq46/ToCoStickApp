@@ -24,7 +24,6 @@
             android:inputType="textMultiLine"
             android:ems="100"
             android:id="@+id/sendData"
-            android:editable="true"
             android:enabled="true" />
 
     </LinearLayout>
@@ -62,7 +61,6 @@
                         android:id="@+id/text_num"
                         android:layout_gravity="center_vertical"
                         android:text="データ数："
-                        android:editable="false"
                         android:enabled="true"
                         android:textSize="20dp" />
 
@@ -80,7 +78,6 @@
                         android:paddingLeft="20dp"
                         android:paddingRight="20dp"
                         android:text="5"
-                        android:editable="false"
                         android:enabled="true" />
 
                     <Button
@@ -118,7 +115,6 @@
                     android:id="@+id/text_second"
                     android:layout_gravity="center_vertical"
                     android:text="周期："
-                    android:editable="false"
                     android:enabled="true"
                     android:textSize="20dp" />
 
@@ -136,7 +132,6 @@
                     android:paddingLeft="20dp"
                     android:paddingRight="20dp"
                     android:text="2"
-                    android:editable="false"
                     android:enabled="true" />
 
                 <Button

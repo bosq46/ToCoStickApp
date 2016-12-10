@@ -42,9 +42,8 @@ public class ReceiveActivity extends Activity {
     private static final String TAG = "ReceiveAct";
     private static  Context context;
 
-    public static boolean isMainLoopRunning = false;
     private ReceiveThreadHelper mReceiveThreadHelper;
-    private DataAnalyzer    mDataAnalyzer;
+
     private static Handler  mHandler;//TODO;
     private static TextView tv_receivedData;
     private static ListView lv_sensorData;
@@ -60,44 +59,56 @@ public class ReceiveActivity extends Activity {
         tv_receivedData = (TextView) findViewById(R.id.receivedData);
         lv_sensorData   = (ListView) findViewById(R.id.dataList);
 
-        mReceiveThreadHelper = new ReceiveThreadHelper(this);
-        isMainLoopRunning = mReceiveThreadHelper.start();
-
-        //   mHandler = new Handler();
-        updateFileLinesView("");//データファイルをビューに書き出す。
-
+        mHandler = new Handler();
+        mReceiveThreadHelper = new ReceiveThreadHelper(this, strFileName, mHandler);
+        mReceiveThreadHelper.start();
+        setDataListView();//データファイルをビューに書き出す。
     }
 
-    public static void updateFileLinesView(String log){
-        String filelines = null;
-        ArrayList<String> al_sensorData = new ArrayList<String>();
-        if(log != "" || log == null)
-            tv_receivedData.setText(log);
-        try {
-            filelines = FileHelper.readAsStrFile(context, strFileName);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (filelines != null) {
-            String[] arr_filelines = filelines.split("\n");
-            for (String fileline : arr_filelines) {
-                al_sensorData.add(fileline);//fileline = date +"\n"+ data
+    public static void setDataView(String str_data){
+        final String log = str_data;
+        mHandler.post(new Runnable() { //viewの変更はmHandlerから行う。
+            @Override
+            public void run() {
+                tv_receivedData.setText(log);
+
             }
-        } else {
-            Toast.makeText(context, "not found data file", Toast.LENGTH_SHORT).show();
-        }
-        Collections.reverse(al_sensorData);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(context,
-                R.layout.list_layout, al_sensorData); //android.R.layout.simple_expandable_list_item_1
-        lv_sensorData.setAdapter(adapter);
+        });
+    }
+    public static void setDataListView(){
+        final ListView data_list = lv_sensorData;
+        mHandler.post(new Runnable() { //viewの変更はmHandlerから行う。
+            @Override
+            public void run() {
+                String filelines = null;
+                ArrayList<String> al_sensorData = new ArrayList<String>();
+                try {
+                    filelines = FileHelper.readAsStrFile(context, strFileName);
+                } catch (Exception e) {
+                    Toast.makeText(context,"E: "+e,Toast.LENGTH_SHORT).show();
+                }
+                if (filelines != null) {
+                    String[] arr_filelines = filelines.split("\n");
+                    for (String fileline : arr_filelines) {
+                        al_sensorData.add(fileline);//fileline = date +"\n"+ data
+                    }
+                } else {
+                    Toast.makeText(context, "not found data file", Toast.LENGTH_SHORT).show();
+                }
+                Collections.reverse(al_sensorData);
+                ArrayAdapter<String> adapter = new ArrayAdapter<String>(context,
+                        R.layout.list_layout, al_sensorData); //android.R.layout.simple_expandable_list_item_1
+                data_list.setAdapter(adapter);
+            }
+        });
+
     }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             Toast.makeText(context, "mSerial.end();", Toast.LENGTH_SHORT).show();
-
-            isMainLoopRunning = mReceiveThreadHelper.end();
+            mReceiveThreadHelper.finish();
             return super.onKeyDown(keyCode, event);
         }
         return false;
