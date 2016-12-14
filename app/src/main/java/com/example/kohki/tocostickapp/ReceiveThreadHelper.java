@@ -25,16 +25,16 @@ public class ReceiveThreadHelper {
     private ReceiveThread mCommuThread;
 
     private  int commuPhase;
-    public static boolean isLoopingCommu;
+
     public ReceiveThreadHelper(Context context, String file_name, Handler handler){
         mContext = context;
         mCommuThread  = new ReceiveThread(context);
     }
 
     public boolean start(){
-        isLoopingCommu = true;
         if (mCommuThread.beginSerial()) {
             try{
+                ReceiveThread.isLoopingCommu = true;
                 new Thread(mCommuThread).start();//--
             }catch (Exception e){
                 Toast.makeText(mContext,"E: "+e,Toast.LENGTH_SHORT).show();
@@ -48,9 +48,9 @@ public class ReceiveThreadHelper {
     }
 
     public boolean finish(){
-        isLoopingCommu = false;
         commuPhase = 0;
-    //    mCommuThread.finish();
+        ReceiveThread.isLoopingCommu = false;
+        //    mCommuThread.finish();
         return true;
     }
 

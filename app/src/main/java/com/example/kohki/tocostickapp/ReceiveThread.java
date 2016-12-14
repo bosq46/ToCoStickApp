@@ -20,6 +20,7 @@ class ReceiveThread implements Runnable {
     public FTDriver mSerial;
     private Context mContext;
     private int   mReceiveDataSize = 64;
+    public static boolean isLoopingCommu;
 
     ReceiveThread(Context context){
             mContext = context;
@@ -30,6 +31,7 @@ class ReceiveThread implements Runnable {
     }
     public boolean beginSerial(){
         if(mSerial.begin(SERIAL_BAUDRATE)){
+            isLoopingCommu=true;
            return true;
         }else {return false;}
     }
@@ -49,10 +51,10 @@ class ReceiveThread implements Runnable {
             // [FTDriver] Create Read Buffer
             len = mSerial.read(rbuf); //this method return length of argument
 
-            if (checkCorrectReception(rbuf)){// && (rbuf[0] & 0xf0) == 0x30) {//FIXME:03 is wireless id. seek better method.
+            if ((rbuf[0] & 0xf0) == 0x30) {//checkCorrectReception(rbuf)){// && (rbuf[0] & 0xf0) == 0x30) {//FIXME:03 is wireless id. seek better method.
                 // cant use upper 4bit of first byte(upper 4bit is 0x03)
                 final StringBuilder sb_receive_data = new StringBuilder(3 * len);// 1 char is 'upper4bit and lower4bit and space'
-                final StringBuilder sb_commu_phase = new StringBuilder(2);// 1 char is 'upper4bit and lower4bit and space'
+                final StringBuilder sb_commu_phase  = new StringBuilder(2);// 1 char is 'upper4bit and lower4bit and space'
                 int[] receive_data = new int[len];
                 int receive_datum;
                 //        log = "";
@@ -63,10 +65,6 @@ class ReceiveThread implements Runnable {
                     sb_receive_data.append(Integer.toHexString((receive_datum & 0xF0) >> 4));
                     sb_receive_data.append(Integer.toHexString(receive_datum  & 0x0F));
                     sb_receive_data.append(" ");
-                    if(i==0){
-                        sb_commu_phase.append(Integer.toHexString((receive_datum & 0xF0) >> 4));
-                        sb_commu_phase.append(Integer.toHexString(receive_datum  & 0x0F));
-                    }
                         /*
                             log += String.format("%02x", receive_datum & 0xff);// = Integer.toHexString(receive_datum);
                             if (i == len - 1)
@@ -78,17 +76,24 @@ class ReceiveThread implements Runnable {
                 ReceiveThreadHelper.saveReceivedData(sb_receive_data.toString());//data save
             //    ReceiveThreadHelper.saveReceivedData(receive_data);//data save
 
-                int data_num  = receive_data[1];
-                int check_sum = receive_data[2];
+            ///    int data_num  = receive_data[1];
+            //    int check_sum = receive_data[2];
                 /*受信したことを伝える.*/
-              //  final byte[] send_data = sb_commu_phase.toString().getBytes();
-                final byte[] send_data = { rbuf[1]+=1};//"受信した".getBytes();
-                mSerial.write("------");
-                ReceiveActivity.setDataView(String.format("%02x", send_data[0] & 0xff));
-                mSerial.write(send_data);
-                mSerial.write("------");
+
+                try {
+                    Thread.sleep(3000); //3000ミリ秒Sleepする
+                } catch (InterruptedException e) {}
             }
-        } while (ReceiveThreadHelper.isLoopingCommu);
+            //test for send
+            final byte[] send_data = {0x30,0x26,0x26,0x26,0x26,0x26,0x26,0x26,0x26,0x26};//"受信した".getBytes()
+        //    ReceiveActivity.setDataView(String.format("%02x", send_data[2] & 0xff));
+            ReceiveThreadHelper.saveReceivedData(new String(send_data));
+            mSerial.write(new String(send_data));
+        //    String mess = "android";
+        //    mSerial.write(mess);
+        //    ReceiveThreadHelper.saveReceivedData(mess);
+
+        } while (isLoopingCommu);
     }
     public int correctUnsignedNum(byte byte_val) {
         int int_val = (int) byte_val;

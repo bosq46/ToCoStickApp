@@ -71,7 +71,6 @@ public class ReceiveActivity extends Activity {
             @Override
             public void run() {
                 tv_receivedData.setText(log);
-
             }
         });
     }
