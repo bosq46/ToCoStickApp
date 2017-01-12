@@ -44,7 +44,7 @@ public class ReceiveActivity extends Activity {
 
     private ReceiveThreadHelper mReceiveThreadHelper;
 
-    private static Handler  mHandler;//TODO;
+    public  static Handler  mHandler;
     private static TextView tv_receivedData;
     private static ListView lv_sensorData;
 

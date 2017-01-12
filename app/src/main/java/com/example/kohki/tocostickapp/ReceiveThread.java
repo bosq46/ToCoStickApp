@@ -54,7 +54,6 @@ class ReceiveThread implements Runnable {
             if ((rbuf[0] & 0xf0) == 0x30) {//checkCorrectReception(rbuf)){// && (rbuf[0] & 0xf0) == 0x30) {//FIXME:03 is wireless id. seek better method.
                 // cant use upper 4bit of first byte(upper 4bit is 0x03)
                 final StringBuilder sb_receive_data = new StringBuilder(3 * len);// 1 char is 'upper4bit and lower4bit and space'
-                final StringBuilder sb_commu_phase  = new StringBuilder(2);// 1 char is 'upper4bit and lower4bit and space'
                 int[] receive_data = new int[len];
                 int receive_datum;
                 //        log = "";
@@ -63,41 +62,48 @@ class ReceiveThread implements Runnable {
                     receive_data[i] = receive_datum;
                     // hex 確認用
                     sb_receive_data.append(Integer.toHexString((receive_datum & 0xF0) >> 4));
-                    sb_receive_data.append(Integer.toHexString(receive_datum  & 0x0F));
+                    sb_receive_data.append(Integer.toHexString(receive_datum & 0x0F));
                     sb_receive_data.append(" ");
-                        /*
-                            log += String.format("%02x", receive_datum & 0xff);// = Integer.toHexString(receive_datum);
-                            if (i == len - 1)
-                                log += "(" + i + "," + (int) receive_datum + ")";
-                            else
-                                log += "(" + i + "," + (int) receive_datum + "),";
-                        */
                 }
+
+                final int receive_pagenum = receive_data[1];
+                final int receive_csum    = receive_data[2];
+                final int local_pagenum   = ReceiveThreadHelper.commuPhase;
+                ReceiveActivity.mHandler.post(new Runnable() { //viewの変更はmHandlerから行う。
+                    @Override
+                    public void run() {
+                        Toast.makeText(mContext, "receive page:" + receive_pagenum + ",csum:" + receive_csum +
+                                "\n local page" + local_pagenum, Toast.LENGTH_SHORT).show();
+                    }
+                });
                 ReceiveThreadHelper.saveReceivedData(sb_receive_data.toString());//data save
-            //    ReceiveThreadHelper.saveReceivedData(receive_data);//data save
+                if (local_pagenum == receive_pagenum) {
+                    ReceiveThreadHelper.saveReceivedData(sb_receive_data.toString());//data save
 
-            ///    int data_num  = receive_data[1];
-            //    int check_sum = receive_data[2];
-                /*受信したことを伝える.*/
-
-                try {
-                    Thread.sleep(3000); //3000ミリ秒Sleepする
-                } catch (InterruptedException e) {}
+                    ReceiveActivity.mHandler.post(new Runnable() { //viewの変更はmHandlerから行う。
+                        @Override
+                        public void run() {
+                            Toast.makeText(mContext, "save", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    int is_send = 0;
+                    int i = 0;
+                    while (is_send <= 0 || i < 2) {
+                        is_send = mSerial.write(receive_pagenum + "");
+                        i++;
+                        try {
+                            Thread.sleep(2000);
+                        } catch (InterruptedException e) {
+                        }
+                    }
+                    ReceiveThreadHelper.commuPhase++;
+                }
             }
-            //test for send
-            final byte[] send_data = {0x30,0x26,0x26,0x26,0x26,0x26,0x26,0x26,0x26,0x26};//"受信した".getBytes()
-        //    ReceiveActivity.setDataView(String.format("%02x", send_data[2] & 0xff));
-            ReceiveThreadHelper.saveReceivedData(new String(send_data));
-            mSerial.write(new String(send_data));
-        //    String mess = "android";
-        //    mSerial.write(mess);
-        //    ReceiveThreadHelper.saveReceivedData(mess);
-
-        } while (isLoopingCommu);
+        }while (isLoopingCommu) ;
     }
     public int correctUnsignedNum(byte byte_val) {
         int int_val = (int) byte_val;
-        if ((int_val & 0x80) == 0x80) {
+        if (byte_val < 0){// < (int_val & 0x80) == 0x80) {
             int_val += 256;
         }
         return int_val;

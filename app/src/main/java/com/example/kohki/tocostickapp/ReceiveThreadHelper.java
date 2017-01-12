@@ -24,7 +24,7 @@ public class ReceiveThreadHelper {
     public static Context mContext; //FIXME: static
     private ReceiveThread mCommuThread;
 
-    private  int commuPhase;
+    public  static int commuPhase;
 
     public ReceiveThreadHelper(Context context, String file_name, Handler handler){
         mContext = context;
@@ -35,14 +35,14 @@ public class ReceiveThreadHelper {
         if (mCommuThread.beginSerial()) {
             try{
                 ReceiveThread.isLoopingCommu = true;
-                new Thread(mCommuThread).start();//--
+                commuPhase = 0;
+                new Thread(mCommuThread).start();
             }catch (Exception e){
                 Toast.makeText(mContext,"E: "+e,Toast.LENGTH_SHORT).show();
             }
-     //       Toast.makeText(mContext,"true",Toast.LENGTH_SHORT).show();
             return true;
         } else {
-            Toast.makeText(mContext,"false",Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext,"start failed",Toast.LENGTH_SHORT).show();
             return false;
         }
     }
@@ -85,7 +85,6 @@ public class ReceiveThreadHelper {
             ReceiveActivity.setDataView(str_date+"\n"+received_hexdata);
             ReceiveActivity.setDataListView();
         } catch (final Exception e) {
-
             return false;
         }
         return true;
