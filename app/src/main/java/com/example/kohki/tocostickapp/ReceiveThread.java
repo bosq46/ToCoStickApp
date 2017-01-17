@@ -42,13 +42,12 @@ class ReceiveThread implements Runnable {
     @Override
     public void run() {
         do {
-            try {
-                Thread.sleep(1000); //3000ミリ秒Sleepする
-            } catch (InterruptedException e) {}
             //context 参照できない(post 内で書く)
             final byte[] rbuf = new byte[mReceiveDataSize];   // 1byte <--slow-- [Transfer Speed] --fast--> 4096 byte
             final int len;
-            // [FTDriver] Create Read Buffer
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {}
             len = mSerial.read(rbuf); //this method return length of argument
 
             if ((rbuf[0] & 0xf0) == 0x30) {//checkCorrectReception(rbuf)){// && (rbuf[0] & 0xf0) == 0x30) {//FIXME:03 is wireless id. seek better method.
@@ -72,31 +71,32 @@ class ReceiveThread implements Runnable {
                 ReceiveActivity.mHandler.post(new Runnable() { //viewの変更はmHandlerから行う。
                     @Override
                     public void run() {
-                        Toast.makeText(mContext, "receive page:" + receive_pagenum + ",csum:" + receive_csum +
-                                "\n local page" + local_pagenum, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mContext, "receive page:" + receive_pagenum + ",csum:"
+                                + receive_csum +"\n local page" + local_pagenum, Toast.LENGTH_SHORT).show();
                     }
                 });
+
+                //send response
+                int is_send = 0;
+                final String send_data = String.valueOf(receive_pagenum) + String.valueOf(receive_pagenum+1);
+
+                while (is_send <= 0) {
+                    is_send = mSerial.write(send_data);
+                }
+
+                final int abc = is_send;
                 ReceiveThreadHelper.saveReceivedData(sb_receive_data.toString());//data save
+
+                //ページナンバーが一致すれば保存
                 if (local_pagenum == receive_pagenum) {
                     ReceiveThreadHelper.saveReceivedData(sb_receive_data.toString());//data save
-
+                    ReceiveThreadHelper.commuPhase++;
                     ReceiveActivity.mHandler.post(new Runnable() { //viewの変更はmHandlerから行う。
                         @Override
                         public void run() {
-                            Toast.makeText(mContext, "save", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(mContext, "send_data:"+send_data, Toast.LENGTH_SHORT).show();
                         }
                     });
-                    int is_send = 0;
-                    int i = 0;
-                    while (is_send <= 0 || i < 2) {
-                        is_send = mSerial.write(receive_pagenum + "");
-                        i++;
-                        try {
-                            Thread.sleep(2000);
-                        } catch (InterruptedException e) {
-                        }
-                    }
-                    ReceiveThreadHelper.commuPhase++;
                 }
             }
         }while (isLoopingCommu) ;

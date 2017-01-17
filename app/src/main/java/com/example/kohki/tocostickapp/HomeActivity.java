@@ -1,34 +1,20 @@
 package com.example.kohki.tocostickapp;
 
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-
 import jp.ksksue.driver.serial.FTDriver;
 
-public class HomeActivity extends AppCompatActivity {
+public class HomeActivity extends Activity {
 
     Button btnPseudoArduino, btnDataGetter,btnChat, btnBegin, btnEnd;
     FTDriver mSerial;
@@ -76,7 +62,7 @@ public class HomeActivity extends AppCompatActivity {
         });
         btnChat.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Intent intent = new Intent(HomeActivity.this, ChatActivity.class);
+                Intent intent = new Intent(HomeActivity.this, ChartActivity.class);
                 startActivity(intent);
             }
         });

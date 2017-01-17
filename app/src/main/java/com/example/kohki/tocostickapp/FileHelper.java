@@ -2,7 +2,6 @@ package com.example.kohki.tocostickapp;
 
 import android.content.Context;
 import android.content.res.AssetManager;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -96,7 +95,6 @@ public class FileHelper {
             // FileInputStream is = context.openFileInput(file_file);
             AssetManager assetManager = context.getResources().getAssets();
             InputStream is = assetManager.open(file_file);
-            //---
             BufferedReader reader = new BufferedReader( new InputStreamReader( is , "UTF-8") );
             String tmp;
             while( (tmp = reader.readLine()) != null ){
@@ -113,21 +111,27 @@ public class FileHelper {
     }
     public static ArrayList readCsvFile(Context context, String file_name){
         ArrayList al_csv_data = new ArrayList();
-        String[] str_data = readFile(context,file_name).split("\n");
-        if(str_data.length == 1){//not get data
-            Toast.makeText(context,"not get data",Toast.LENGTH_LONG).show();
+        String[] arr_sen_data = readFile(context, file_name).split("\n");
+        if(arr_sen_data.length <= 1){
+            Log.v("readCsvFile","データが少ない、または、取得できない");
         }
-        for (int i=1;i<500
-                ;i++) {
-            String[] all_elements = str_data[i].split(",");
-            String[] elements = new String[5];
+        for (int i=1;i<arr_sen_data.length;i++) {
+            String[] all_elements = arr_sen_data[i].split(",");
+            String[] elements = new String[6];
             elements[0] = all_elements[0];//time
             elements[1] = all_elements[1];//temp
             elements[2] = all_elements[2];//humi
             elements[3] = all_elements[9];//radiation
             elements[4] = all_elements[12];//TODO: where?
-            if (i <= 50) {
-//                Log.v("データ確認date", all_elements[0]);
+            if(i == 1)
+                elements[5] = all_elements[1];//積算温度
+            else if(al_csv_data.size() >= 1) {
+                String el[] = (String[]) al_csv_data.get(al_csv_data.size() - 1);
+                try {
+                    elements[5] = Double.parseDouble(el[5]) + Double.parseDouble(all_elements[1]) + "";//積算温度
+                }catch (NumberFormatException e){
+                    Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show();
+                }
             }
             al_csv_data.add(elements);
         }
