@@ -18,11 +18,10 @@
             android:gravity="left">
 
             <Button
-                android:text="スケール"
+                android:text="スケ\nール"
                 android:layout_height="wrap_content"
                 android:id="@+id/btn_change_scale"
-                android:minHeight="48dp"
-                android:layout_width="80dp" />
+                android:layout_width="70dp" />
             <Button
                 android:layout_height="wrap_content"
                 android:id="@+id/btn_month_minus"
@@ -32,28 +31,28 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/tv_graph_date"
+                android:id="@+id/tv_graph_year_month"
                 android:text="20XX年 X月"/>
             <Button
                 android:layout_height="wrap_content"
                 android:id="@+id/btn_month_plus"
-                android:text="1月前"
+                android:text="1月後"
                 android:layout_width="60dp" />
+            <Button
+                android:layout_width= "60dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/btn_get_webapi"
+                android:text="Get"/>
+
         </LinearLayout>
 
         <Button
-            android:layout_width="match_parent"
+            android:layout_width="60dp"
             android:layout_height="wrap_content"
             android:id="@+id/btn_record_ventilation"
             android:text="換気記録"/>
 
     </LinearLayout>
-
-    <com.github.mikephil.charting.charts.LineChart
-        android:id="@+id/chart"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="95"/>
 
     <LinearLayout
         android:orientation="horizontal"
@@ -92,5 +91,11 @@
             android:text="気温" />
 
     </LinearLayout>
+
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/chart"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="95"/>
 
 </LinearLayout>

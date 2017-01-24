@@ -41,7 +41,7 @@
             android:text="0"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/tv_parcent"
+            android:id="@+id/tv_vent_parcent"
             android:layout_weight="1"
             android:gravity="right" />
 

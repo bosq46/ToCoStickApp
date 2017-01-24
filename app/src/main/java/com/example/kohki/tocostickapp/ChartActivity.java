@@ -2,58 +2,29 @@ package com.example.kohki.tocostickapp;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.github.mikephil.charting.animation.Easing;
-import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.Legend;
-import com.github.mikephil.charting.components.XAxis;
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.BarData;
-import com.github.mikephil.charting.data.BarDataSet;
-import com.github.mikephil.charting.data.BarEntry;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.data.PieData;
-import com.github.mikephil.charting.data.PieDataSet;
-import com.github.mikephil.charting.formatter.FillFormatter;
-import com.github.mikephil.charting.formatter.PercentFormatter;
-import com.github.mikephil.charting.formatter.ValueFormatter;
-import com.github.mikephil.charting.formatter.YAxisValueFormatter;
-import com.github.mikephil.charting.interfaces.dataprovider.LineDataProvider;
-import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
-import com.github.mikephil.charting.utils.ColorTemplate;
-import com.github.mikephil.charting.utils.ViewPortHandler;
 
-import java.text.ParseException;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
-
-import jp.ksksue.driver.serial.FTDriver;
-
-import static com.example.kohki.tocostickapp.ReceiveThreadHelper.mContext;
 
 /**
  * Created by Kohki on 2016/02/24.
  */
-public class ChartActivity extends Activity {
+public class ChartActivity extends Activity implements FileContract {
     private static final String TAG = "ChartAct";
     private static ChartActivity sInstance;
 
@@ -64,12 +35,16 @@ public class ChartActivity extends Activity {
     public static boolean isPaintTemperature;
     public static boolean isPaintCumuTemp;
 
-    static final SimpleDateFormat sdf_csv = new SimpleDateFormat("yyyy'/'MM'/'dd HH:mm", Locale.JAPAN);
-    static final SimpleDateFormat sdf_ymd = new SimpleDateFormat("yyyy'年'MM'月'dd'日'", Locale.JAPAN);
-    static final SimpleDateFormat sdf_ym  = new SimpleDateFormat("yyyy'年'MM'月'");
+    public static final SimpleDateFormat sdf_ymd = new SimpleDateFormat("yyyy'年'MM'月'dd'日'", Locale.JAPAN);
+    public static final SimpleDateFormat sdf_ym  = new SimpleDateFormat("yyyy'年'MM'月'");
 
     private GraphMaker mGMaker;
-    private int mGraphScale = 1;//0:every year, 1:every month, 2:every week, 3:every 3days, 4:every 1day(priority -> 1,2,3)
+    private int   mGraphScale = 1;//1:every year, 2:every month, 3:every week, 4:every 3days, 5:every 1day(priority -> 1,2,3)
+    private String mDataSource = "asset";
+    private static final String DATASOURCE_WEB = "web";
+    private static final String DATASOURCE_WIRELESS = "wireless";
+    private WebAPICommunication mWebAPI;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -77,14 +52,34 @@ public class ChartActivity extends Activity {
         setContentView(R.layout.activity_chart);
         sInstance = this;
 
-        mGMaker = new GraphMaker((LineChart) findViewById(R.id.chart));
-        mTvGraphYearMonth = (TextView) findViewById(R.id.tv_graph_date);
+        if(checkFile(this, WEB_DATA_FILE)){
+            mDataSource = DATASOURCE_WEB;
+            Toast.makeText(this,"Web取得したデータがあります",Toast.LENGTH_SHORT).show();
+            if(!checkFile(this, WEB_EVERY_DAY_DATA_FILE)) {
+                Toast.makeText(this,"日毎のデータ抽出中",Toast.LENGTH_SHORT).show();
+                FileHelper.pickUpDistinguishingValue(WEB_DATA_FILE,WEB_EVERY_DAY_DATA_FILE);
+            }
+        }else if (checkFile(this,WIRELESS_DATA_FILE)){
+                mDataSource = DATASOURCE_WIRELESS;
+            Toast.makeText(this,"無線取得したデータがあります",Toast.LENGTH_SHORT).show();
+            if(!checkFile(this, WIRELESS_EVERY_DAY_DATA_FILE) ) {
+                Toast.makeText(this,"日毎のデータ抽出中",Toast.LENGTH_SHORT).show();
+                FileHelper.pickUpDistinguishingValue(WIRELESS_DATA_FILE,WIRELESS_EVERY_DAY_DATA_FILE);
+            }
+        }else {
+            //TODO:画面遷移
+            Toast.makeText(this,"データがないので、取得してください",Toast.LENGTH_SHORT).show();
+            //TODO:後々消す
+            FileHelper.moveFromAssetsToLocal(this, ASSETS_FILE, WEB_DATA_FILE);
+            mDataSource = DATASOURCE_WEB;
+            if(!checkFile(this, WEB_EVERY_DAY_DATA_FILE) ) {
+                FileHelper.pickUpDistinguishingValue(WEB_DATA_FILE, WEB_EVERY_DAY_DATA_FILE);
+            }
+        }
 
-        try {
-            Date formatDate = sdf_csv.parse(mGMaker.mNowYearMonth);
-            mTvGraphYearMonth.setText(sdf_ym.format(formatDate));
-            Log.d(TAG, sdf_ym.format(formatDate));
-        }catch (ParseException e){}
+        mGMaker = new GraphMaker((LineChart) findViewById(R.id.chart));
+        mTvGraphYearMonth = (TextView) findViewById(R.id.tv_graph_year_month);
+        createChart();
 
         isPaintTemperature = false;
         isPaintHumidity    = false;
@@ -113,31 +108,55 @@ public class ChartActivity extends Activity {
         findViewById(R.id.btn_month_minus).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    Date graph_date = sdf_ym.parse(mTvGraphYearMonth.getText().toString());
-                    Calendar cal = Calendar.getInstance();
-                    cal.setTime(graph_date);
-                    cal.add(Calendar.DAY_OF_MONTH, -1);
-                    mTvGraphYearMonth.setText(sdf_ym.format(cal.getTime()));
-                }catch (ParseException e){
-                    Log.d(TAG,e.toString());
-                }
+                Date graph_date = mGMaker.mLatestMonth;
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(graph_date);
+                cal.add(Calendar.MONTH, -1);
+                mTvGraphYearMonth.setText(sdf_ym.format(cal.getTime()));
+                mGMaker.mLatestMonth = cal.getTime();
             }
         });
         findViewById(R.id.btn_month_plus).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    Date graph_date = sdf_ym.parse(mTvGraphYearMonth.getText().toString());
-                    Calendar cal = Calendar.getInstance();
-                    cal.setTime(graph_date);
-                    cal.add(Calendar.DAY_OF_MONTH, 1);
-                    mTvGraphYearMonth.setText(sdf_ym.format(cal.getTime()));
-                }catch (ParseException e){
-                    Log.d(TAG,e.toString());
-                }
+                Date graph_date = mGMaker.mLatestMonth;
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(graph_date);
+                cal.add(Calendar.MONTH, 1);
+
+                mTvGraphYearMonth.setText(sdf_ym.format(cal.getTime()));
+                mGMaker.mLatestMonth = cal.getTime();
+                Log.d(TAG, sdf_ym.format(mGMaker.mLatestMonth));
             }
         });
+        mWebAPI = new WebAPICommunication();
+        findViewById(R.id.btn_get_webapi).setOnClickListener(mWebAPI.generateWebDataDLLictener());
+
+    }
+
+    private boolean checkFile(Context context, String file_name){
+        File file = context.getFileStreamPath(file_name);
+        return file.exists();
+    }
+    private void createChart(){
+        Date graph_latest_date = new Date();
+        switch (mDataSource) {
+            case DATASOURCE_WEB:
+                if (mGraphScale <= 3) {
+                    mGMaker.makeLineChart(WEB_EVERY_DAY_DATA_FILE);
+                }else {
+                    mGMaker.makeLineChart(WEB_DATA_FILE,mGraphScale);//mGraphScale -> 2,3 ?
+                }
+                break;
+            case DATASOURCE_WIRELESS:
+                if (mGraphScale <= 3){
+                    mGMaker.makeLineChart(WIRELESS_EVERY_DAY_DATA_FILE);
+                }else {
+                    mGMaker.makeLineChart(WIRELESS_DATA_FILE,mGraphScale);
+                }
+                break;
+        }
+        mTvGraphYearMonth.setText(sdf_ym.format(graph_latest_date));
     }
 
     private void setBtnColor(Button btn){
@@ -190,7 +209,7 @@ public class ChartActivity extends Activity {
                         isPaintTemperature =! isPaintTemperature;
                         isPaintCumuTemp =! isPaintCumuTemp;
                         setBtnColor((Button) v);
-                        mGMaker.makeLineChart(mGraphScale);
+                        createChart();
                     }
                 });
                 break;
@@ -200,7 +219,7 @@ public class ChartActivity extends Activity {
                     public void onClick(View v) {
                         isPaintHumidity =! isPaintHumidity;
                         setBtnColor((Button) v);
-                        mGMaker.makeLineChart(mGraphScale);
+                        createChart();
                     }
                 });
                 break;
@@ -210,8 +229,7 @@ public class ChartActivity extends Activity {
                     public void onClick(View v) {
                         isPaintRadiation =! isPaintRadiation;
                         setBtnColor((Button) v);
-                        mGMaker.makeLineChart(mGraphScale);
-
+                        createChart();
                     }
                 });
                 break;
@@ -221,7 +239,7 @@ public class ChartActivity extends Activity {
                     public void onClick(View v) {
                         isPaintMoisture =! isPaintMoisture;
                         setBtnColor((Button) v);
-                        mGMaker.makeLineChart(mGraphScale);
+                        createChart();
                     }
                 });
                 break;
@@ -233,7 +251,7 @@ public class ChartActivity extends Activity {
     @Override
     public void onResume(){
         super.onResume();
-        mGMaker.makeLineChart(mGraphScale);
+    ///    mGMaker.makeLineChart(mGraphScale);
     }
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
@@ -248,7 +266,7 @@ public class ChartActivity extends Activity {
             default:
                 break;
         }*/
-        mGMaker.makeLineChart(mGraphScale);
+        createChart();
         super.onConfigurationChanged(newConfig);
     }
 }

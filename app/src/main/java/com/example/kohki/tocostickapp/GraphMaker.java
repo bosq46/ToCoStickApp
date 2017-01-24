@@ -1,14 +1,27 @@
 package com.example.kohki.tocostickapp;
 
 import android.graphics.Color;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
 
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.PercentFormatter;
 import com.github.mikephil.charting.formatter.YAxisValueFormatter;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.listener.ChartTouchListener;
+import com.github.mikephil.charting.listener.OnChartGestureListener;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
+import com.github.mikephil.charting.formatter.XAxisValueFormatter;
+
+import java.util.Date;
 
 /**
  * Created by Kohki on 2017/01/17.
@@ -16,22 +29,44 @@ import com.github.mikephil.charting.formatter.YAxisValueFormatter;
 
 public class GraphMaker {
     private static final String TAG = "GraphMakerClass";
-
-    private GraphData mGData;
+    public static Date mLatestMonth;
+    public GraphData mGData;
     private LineChart mLineChart;
-    public static String mNowYearMonth;
+    private LineData mDataSet;
 
     GraphMaker(LineChart line_chart){
         mLineChart = line_chart;
-        mGData = new GraphData(ChartActivity.getInstance(), mLineChart);
-
     }
-    void makeLineChart(int graph_scalse){
-        // tv_year_month.setText(mGData.mNowYearMonth);
 
+    void makeLineChart(String data_file, int scale) {
+        mGData = new GraphData(ChartActivity.getInstance(), mLineChart);
+        mDataSet = mGData.getLineDataOfEveryDay(data_file);
+        mLineChart.setData(mDataSet);
+        setChart();
+    }
+    void makeLineChart(String data_file) {
+        mGData = new GraphData(ChartActivity.getInstance(), mLineChart);
+        mDataSet = mGData.getLineDataOfEveryMonth(data_file);
+        mLineChart.setData(mDataSet);
+        setChart();
+    }
+    void setChart(){
+        mLineChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
+            @Override
+            public void onValueSelected(Entry e, int i, Highlight h) {
+                Log.i("Entry selected", e.toString());
+                Log.i("MIN MAX", "xmin: " + mLineChart.getXChartMin() + ", xmax: " + mLineChart.getXChartMax() +
+                        ", ymin: " + mLineChart.getYChartMin() + ", ymax: " + mLineChart.getYChartMax());
+                Log.d("->",mLineChart.getLineData().getDataSetByIndex(i).toString());
+            }
+
+            @Override
+            public void onNothingSelected() {
+                Log.i("Nothing selected", "Nothing selected.");
+            }
+        });
         // enable touch gestures
         mLineChart.setTouchEnabled(true);
-
         // enable scaling and dragging
         mLineChart.setDragEnabled(true);
         mLineChart.setScaleEnabled(true);
@@ -40,11 +75,30 @@ public class GraphMaker {
         mLineChart.setPinchZoom(true);
         // set an alternative background color
         mLineChart.setBackgroundColor(Color.WHITE);
-        mLineChart.setData(mGData.getLineData());
+        //    mLineChart.setData(mGData.getLineData()); //---------------
+
         //  ラインの凡例の設定
         Legend l = mLineChart.getLegend();
         l.setForm(Legend.LegendForm.LINE);
         l.setTextColor(Color.BLACK);
+
+        YAxis leftAxis = mLineChart.getAxisLeft();
+        leftAxis.setTextColor(Color.BLACK);
+        leftAxis.setValueFormatter(new YAxisValueFormatter() {
+                @Override
+                public String getFormattedValue(float v, YAxis yAxis) {
+                    return v +"℃";
+                }
+            });
+        leftAxis.setDrawGridLines(true);
+
+        YAxis rightAxis = mLineChart.getAxisRight();
+        //    rightAxis.setAxisMaxValue(0);
+        //    rightAxis.setAxisMinValue(100f);
+        //    rightAxis.setStartAtZero(true);
+        //    rightAxis.setEnabled(true);
+        rightAxis.setDrawGridLines(true);
+
 
         XAxis xl = mLineChart.getXAxis();
         xl.setTextColor(Color.BLACK);
@@ -55,28 +109,5 @@ public class GraphMaker {
         mLineChart.animateX(500, Easing.EasingOption.EaseInQuad);
         mLineChart.notifyDataSetChanged();
         mLineChart.invalidate();
-
-
-        YAxis leftAxis = mLineChart.getAxisLeft();
-        leftAxis.setTextColor(Color.BLACK);
-        if(ChartActivity.isPaintTemperature) {
-            leftAxis.setValueFormatter(new YAxisValueFormatter() {
-                @Override
-                public String getFormattedValue(float v, YAxis yAxis) {
-                    return v +"℃";
-                }
-            });
-        }else if(ChartActivity.isPaintHumidity) {
-            leftAxis.setValueFormatter(new PercentFormatter());
-        }
-        leftAxis.setValueFormatter(new PercentFormatter());
-        leftAxis.setDrawGridLines(true);
-
-        YAxis rightAxis = mLineChart.getAxisRight();
-        //    rightAxis.setAxisMaxValue(0);
-        //    rightAxis.setAxisMinValue(100f);
-        //    rightAxis.setStartAtZero(true);
-        //    rightAxis.setEnabled(true);
-        rightAxis.setDrawGridLines(true);
     }
 }

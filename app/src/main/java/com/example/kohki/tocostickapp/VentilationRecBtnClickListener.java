@@ -8,19 +8,25 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+
+import static android.content.Context.MODE_PRIVATE;
 
 
 /**
  * Created by Kohki on 2017/01/17.
  */
 
-class VentilationRecBtnClickListener implements View.OnClickListener {
+class VentilationRecBtnClickListener implements View.OnClickListener, FileContract {
     private AlertDialog.Builder builder;
     public static AlertDialog alertDialog;
+    private static final String TAG = "VRCListener";
 
     @Override
     public void onClick(View v) {
@@ -50,21 +56,21 @@ class VentilationRecBtnClickListener implements View.OnClickListener {
             }
         });
         //ventilation
-        final TextView tv_parcent = (TextView) layout.findViewById(R.id.tv_parcent);
+        final TextView tv_vent_parcent = (TextView) layout.findViewById(R.id.tv_vent_parcent);
         layout.findViewById(R.id.btn_vent_minus).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int now_vent = Integer.parseInt(tv_parcent.getText().toString());
+                int now_vent = Integer.parseInt(tv_vent_parcent.getText().toString());
                 if (now_vent >= 1)
-                    tv_parcent.setText(now_vent - 1 + "");
+                    tv_vent_parcent.setText(now_vent - 1 + "");
             }
         });
         layout.findViewById(R.id.btn_vent_plus).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int now_vent = Integer.parseInt(tv_parcent.getText().toString());
+                int now_vent = Integer.parseInt(tv_vent_parcent.getText().toString());
 
-                tv_parcent.setText(now_vent + 1 + "");
+                tv_vent_parcent.setText(now_vent + 1 + "");
             }
         });
 
@@ -77,8 +83,14 @@ class VentilationRecBtnClickListener implements View.OnClickListener {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     try {
-
-                    } catch (Exception e) {
+                        String rec_date = tv_date.getText().toString();
+                        String rec_vent = tv_vent_parcent.getText().toString();
+                        FileOutputStream fs_ave = ChartActivity.getInstance().openFileOutput(VENTILATION_REC_FILE, MODE_PRIVATE);
+                        PrintWriter vent_rec_file = new PrintWriter(fs_ave);
+                        String rec_data = rec_date+","+rec_vent;
+                        Log.d(TAG,rec_data);
+                        vent_rec_file.print(rec_data);
+                    } catch (IOException e) {
                         Log.v("IntentErr:", e.getMessage() + "," + e);
                     }
                 }

@@ -20,8 +20,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_weight="0"
-        android:text="TWE Control"
-        android:textSize="50dp" />
+        android:text="春夏ニンジン栽培用\nトンネルハウス換気率\n判断支援システムに関する研究"
+        android:textSize="24dp" />
 
     <View
         android:id="@+id/View2"
