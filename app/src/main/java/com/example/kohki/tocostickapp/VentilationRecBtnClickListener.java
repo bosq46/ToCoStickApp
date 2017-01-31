@@ -23,7 +23,7 @@ import static android.content.Context.MODE_PRIVATE;
  * Created by Kohki on 2017/01/17.
  */
 
-class VentilationRecBtnClickListener implements View.OnClickListener, FileContract {
+class VentilationRecBtnClickListener implements View.OnClickListener {
     private AlertDialog.Builder builder;
     public static AlertDialog alertDialog;
     private static final String TAG = "VRCListener";
@@ -85,7 +85,7 @@ class VentilationRecBtnClickListener implements View.OnClickListener, FileContra
                     try {
                         String rec_date = tv_date.getText().toString();
                         String rec_vent = tv_vent_parcent.getText().toString();
-                        FileOutputStream fs_ave = ChartActivity.getInstance().openFileOutput(VENTILATION_REC_FILE, MODE_PRIVATE);
+                        FileOutputStream fs_ave = ChartActivity.getInstance().openFileOutput(FileContract.VENTILATION_REC_FILE, MODE_PRIVATE);
                         PrintWriter vent_rec_file = new PrintWriter(fs_ave);
                         String rec_data = rec_date+","+rec_vent;
                         Log.d(TAG,rec_data);

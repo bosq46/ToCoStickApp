@@ -280,7 +280,7 @@ public class GraphData {
         data.addDataSet(data_set);
 */
         // テキストの設定
-        data.setValueTextSize(14f);
+        data.setValueTextSize(16f);
         data.setValueTextColor(Color.BLACK);
 
         return data;

@@ -24,7 +24,7 @@ public abstract class WebDataDLBtnClickListener implements View.OnClickListener 
     private static final String TAG = "VRCListener";
     private AlertDialog.Builder builder;
     private AlertDialog alertDialog;
-    private int indexTimeRange = 0;//偶数はDate 奇数はTime
+    protected int indexTimeRange = 0;//偶数はDate 奇数はTime
 
     private Button btn_negative;
     private Button btn_positive;
@@ -63,7 +63,6 @@ public abstract class WebDataDLBtnClickListener implements View.OnClickListener 
                         indexTimeRange++;
                         mLayoutManager.changeLayout(indexTimeRange-1,indexTimeRange);
                     }else {
-                        //TODO：download
                         downloadSensorData();
                     }
                     //alertDialog.dismiss();//close
@@ -213,7 +212,8 @@ public abstract class WebDataDLBtnClickListener implements View.OnClickListener 
                 });
             }
             /* version problem
-            * int hour;
+            *
+int hour;
 int minute;
 int currentApiVersion = Build.VERSION.SDK_INT;
 if (currentApiVersion > Build.VERSION_CODES.LOLLIPOP_MR1) {
@@ -223,7 +223,7 @@ if (currentApiVersion > Build.VERSION_CODES.LOLLIPOP_MR1) {
     hour = timePicker.getCurrentHour();
     minute = timePicker.getCurrentMinute();
 }
-            * */
+             */
         }
     }
 }

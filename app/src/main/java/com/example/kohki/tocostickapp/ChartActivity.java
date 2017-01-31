@@ -20,15 +20,16 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import android.os.Handler;
 
 /**
  * Created by Kohki on 2016/02/24.
  */
-public class ChartActivity extends Activity implements FileContract {
+public class ChartActivity extends Activity {
     private static final String TAG = "ChartAct";
     private static ChartActivity sInstance;
 
-    private TextView mTvGraphYearMonth;
+    private static TextView mTvGraphYearMonth;
     public static boolean isPaintMoisture;
     public static boolean isPaintRadiation;
     public static boolean isPaintHumidity;
@@ -38,20 +39,21 @@ public class ChartActivity extends Activity implements FileContract {
     public static final SimpleDateFormat sdf_ymd = new SimpleDateFormat("yyyy'年'MM'月'dd'日'", Locale.JAPAN);
     public static final SimpleDateFormat sdf_ym  = new SimpleDateFormat("yyyy'年'MM'月'");
 
-    private GraphMaker mGMaker;
+    private static GraphMaker mGMaker;
     private int   mGraphScale = 1;//1:every year, 2:every month, 3:every week, 4:every 3days, 5:every 1day(priority -> 1,2,3)
     private String mDataSource = "asset";
     private static final String DATASOURCE_WEB = "web";
     private static final String DATASOURCE_WIRELESS = "wireless";
     private WebAPICommunication mWebAPI;
 
-
+    public static Handler mHandler;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chart);
         sInstance = this;
-
+        mHandler = new Handler();
+        /*
         if(checkFile(this, WEB_DATA_FILE)){
             mDataSource = DATASOURCE_WEB;
             Toast.makeText(this,"Web取得したデータがあります",Toast.LENGTH_SHORT).show();
@@ -76,10 +78,15 @@ public class ChartActivity extends Activity implements FileContract {
                 FileHelper.pickUpDistinguishingValue(WEB_DATA_FILE, WEB_EVERY_DAY_DATA_FILE);
             }
         }
+        */
+        //TODO:Webから取得
+        mWebAPI = new WebAPICommunication();
+        mWebAPI.getToken();
+        mWebAPI.downloadSensorData();
+     //   FileHelper.pickUpDistinguishingValue(WEB_DATA_FILE, WEB_EVERY_DAY_DATA_FILE);
 
         mGMaker = new GraphMaker((LineChart) findViewById(R.id.chart));
         mTvGraphYearMonth = (TextView) findViewById(R.id.tv_graph_year_month);
-        createChart();
 
         isPaintTemperature = false;
         isPaintHumidity    = false;
@@ -129,8 +136,18 @@ public class ChartActivity extends Activity implements FileContract {
                 Log.d(TAG, sdf_ym.format(mGMaker.mLatestMonth));
             }
         });
+        /*
         mWebAPI = new WebAPICommunication();
-        findViewById(R.id.btn_get_webapi).setOnClickListener(mWebAPI.generateWebDataDLLictener());
+    //    findViewById(R.id.btn_get_webapi).setOnClickListener(mWebAPI);
+        mWebAPI.getToken();
+        mWebAPI.downloadSensorData();
+        */
+        findViewById(R.id.btn_get_webapi).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mWebAPI.downloadSensorData();
+            }
+        });
 
     }
 
@@ -138,24 +155,28 @@ public class ChartActivity extends Activity implements FileContract {
         File file = context.getFileStreamPath(file_name);
         return file.exists();
     }
-    private void createChart(){
+    public static void createChart(String file_name){
+        Log.d(TAG,file_name);
         Date graph_latest_date = new Date();
+        mGMaker.makeLineChart(file_name);
+        /*
         switch (mDataSource) {
             case DATASOURCE_WEB:
                 if (mGraphScale <= 3) {
-                    mGMaker.makeLineChart(WEB_EVERY_DAY_DATA_FILE);
+                    mGMaker.makeLineChart(FileContract.WEB_EVERY_DAY_DATA_FILE);
                 }else {
-                    mGMaker.makeLineChart(WEB_DATA_FILE,mGraphScale);//mGraphScale -> 2,3 ?
+                    mGMaker.makeLineChart(FileContract.WEB_DATA_FILE,mGraphScale);//mGraphScale -> 2,3 ?
                 }
                 break;
             case DATASOURCE_WIRELESS:
                 if (mGraphScale <= 3){
-                    mGMaker.makeLineChart(WIRELESS_EVERY_DAY_DATA_FILE);
+                    mGMaker.makeLineChart(FileContract.WIRELESS_EVERY_DAY_DATA_FILE);
                 }else {
-                    mGMaker.makeLineChart(WIRELESS_DATA_FILE,mGraphScale);
+                    mGMaker.makeLineChart(FileContract.WIRELESS_DATA_FILE,mGraphScale);
                 }
                 break;
         }
+        */
         mTvGraphYearMonth.setText(sdf_ym.format(graph_latest_date));
     }
 
@@ -209,7 +230,7 @@ public class ChartActivity extends Activity implements FileContract {
                         isPaintTemperature =! isPaintTemperature;
                         isPaintCumuTemp =! isPaintCumuTemp;
                         setBtnColor((Button) v);
-                        createChart();
+                        createChart("");
                     }
                 });
                 break;
@@ -219,7 +240,7 @@ public class ChartActivity extends Activity implements FileContract {
                     public void onClick(View v) {
                         isPaintHumidity =! isPaintHumidity;
                         setBtnColor((Button) v);
-                        createChart();
+                        createChart("");
                     }
                 });
                 break;
@@ -229,7 +250,7 @@ public class ChartActivity extends Activity implements FileContract {
                     public void onClick(View v) {
                         isPaintRadiation =! isPaintRadiation;
                         setBtnColor((Button) v);
-                        createChart();
+                        createChart("");
                     }
                 });
                 break;
@@ -239,7 +260,7 @@ public class ChartActivity extends Activity implements FileContract {
                     public void onClick(View v) {
                         isPaintMoisture =! isPaintMoisture;
                         setBtnColor((Button) v);
-                        createChart();
+                        createChart("");
                     }
                 });
                 break;
@@ -266,7 +287,7 @@ public class ChartActivity extends Activity implements FileContract {
             default:
                 break;
         }*/
-        createChart();
+        createChart("");
         super.onConfigurationChanged(newConfig);
     }
 }

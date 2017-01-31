@@ -49,7 +49,6 @@ public class FileHelper {
 
     public FileHelper(){}
 
-    //This method is test code for confirming correct communication,
     public static void  writeAsStrFile(Context context, String file_file, String date, String sentence){
         try {
             FileOutputStream output = context.openFileOutput(file_file, context.MODE_APPEND);
@@ -250,9 +249,11 @@ public class FileHelper {
         try {
             FileInputStream file = ChartActivity.getInstance().openFileInput(source_file_name);
             in = new BufferedReader(new InputStreamReader(file));
-            String line;
+
             FileOutputStream fs_ave = ChartActivity.getInstance().openFileOutput(every_day_file_name, MODE_PRIVATE);
-            PrintWriter every_day_file = new PrintWriter(fs_ave);
+            OutputStreamWriter every_day_file = new OutputStreamWriter(fs_ave);
+        //    BufferedReader every_day_file = new Buffer(new OutputStreamWriter(fs_ave));
+        //    PrintWriter every_day_file = new PrintWriter(fs_ave);
             double d_ave = 0;
             double d_hig = 0;
             double d_min = 0;
@@ -260,6 +261,8 @@ public class FileHelper {
             int cnt_days = 1;
             int cnt_row = 0;
             Date date;
+            String line;
+
             while ((line = in.readLine()) != null) {
                 if(cnt_row==0){
                     cnt_row++;
@@ -271,11 +274,13 @@ public class FileHelper {
                     date_ymd = sdf_ymd.format(date);
                     Log.d(TAG+cnt_row,date_ymd);
                 } else {
-                    if (!date_ymd.equals(sdf_ymd.format(date))) {
+                    if (!date_ymd.equals(sdf_ymd.format(date)) || !in.ready()) {
                         d_ave /= cnt_days;
+                        d_ave = ((int)(d_ave*10))/10;
                         String new_row = date_ymd+","+d_ave+","+d_hig+","+d_min;
-                        Log.d(TAG+cnt_row,"def "+new_row);
-                        every_day_file.println(new_row);
+                        Log.d(TAG+"pickupVal",new_row);
+//                        every_day_file.println(new_row);
+                        every_day_file.write(new_row+"\n");
                         cnt_days = 1;
                         date_ymd = sdf_ymd.format(date);
                     }
@@ -294,6 +299,7 @@ public class FileHelper {
                 }
                 cnt_row++;
                 cnt_days++;
+            //    Log.d(TAG,);
             }
             in.close();
             every_day_file.close();

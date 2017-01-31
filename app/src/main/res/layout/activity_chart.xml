@@ -9,7 +9,6 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="3"
         android:gravity="right">
         <LinearLayout
             android:orientation="horizontal"
@@ -21,7 +20,10 @@
                 android:text="スケ\nール"
                 android:layout_height="wrap_content"
                 android:id="@+id/btn_change_scale"
-                android:layout_width="70dp" />
+                android:layout_width="70dp"
+                android:minHeight="26dp"
+                android:minWidth="30dp" />
+
             <Button
                 android:layout_height="wrap_content"
                 android:id="@+id/btn_month_minus"
@@ -58,8 +60,7 @@
         android:orientation="horizontal"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
-        android:minHeight="25dp"
-        android:layout_weight="2">
+        android:minHeight="25dp">
 
         <Button
             android:text="土壌水分"
@@ -92,10 +93,20 @@
 
     </LinearLayout>
 
-    <com.github.mikephil.charting.charts.LineChart
-        android:id="@+id/chart"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="95"/>
+        android:layout_height="match_parent"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        >
+
+        <com.github.mikephil.charting.charts.LineChart
+            android:id="@+id/chart"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="95"/>
+    </LinearLayout>
 
 </LinearLayout>
