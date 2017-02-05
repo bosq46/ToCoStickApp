@@ -28,6 +28,9 @@ public abstract class WebDataDLBtnClickListener implements View.OnClickListener 
 
     private Button btn_negative;
     private Button btn_positive;
+
+    abstract public void downloadSensorData();
+
     @Override
     public void onClick(View v) {
         Log.d(TAG, "onClick()");
@@ -45,6 +48,7 @@ public abstract class WebDataDLBtnClickListener implements View.OnClickListener 
 
             btn_negative = alertDialog.getButton(DialogInterface.BUTTON_NEGATIVE);
             btn_positive = alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
+
             btn_negative.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -73,7 +77,6 @@ public abstract class WebDataDLBtnClickListener implements View.OnClickListener 
             e.printStackTrace();
         }
     }
-    abstract public void downloadSensorData();
 
     class WebDateTimeLayoutManager{
         LinearLayout menu_layout;

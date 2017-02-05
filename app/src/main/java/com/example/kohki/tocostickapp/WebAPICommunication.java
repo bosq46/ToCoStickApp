@@ -1,6 +1,5 @@
 package com.example.kohki.tocostickapp;
 
-import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
@@ -21,9 +20,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.IllegalFormatException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Matcher;
@@ -39,7 +36,7 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
     private static final String TAG = "WebAPICls";
     private static final String TOKEN_REQUEST = "http://www17337uj.sakura.ne.jp:3000/getToken";
     private static final String DATA_REQUEST  = "http://agridatabase.mybluemix.net/v1/json/collection/item/";
-    private static final String APIkey = "3fd5aa9c63f9307c98b0eab8c716b2e918212400744d665adff6817b140acf1f";
+    //private static final String APIkey = "3fd5aa9c63f9307c98b0eab8c716b2e918212400744d665adff6817b140acf1f";
 
     private ConcurrentMap Tokens;
     private String mGatewayNAME;
@@ -49,13 +46,13 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
     volatile private String[] mKeys;
 
     WebAPICommunication() {
-        mID = new FileContract(ChartActivity.getInstance());
         setDataID();
     }
     public void setDataID(){
+        mID = new FileContract(ChartActivity.getInstance());
         mGatewayNAME = "sensorData_sample_" + mID.getGateWayID();
-        mQueryPost = "\"nodeID\":" + mID.getNodeID()+"}";
-        mDataKeys = "[\"nodeID\",\"time\"";
+        mQueryPost   = "\"nodeID\":" + mID.getNodeID()+"}";
+        mDataKeys    = "[\"nodeID\",\"time\"";
         String env_id[] = "air_temperature relative_humidity illuminance ATPR soil_temperature soil_moisture_content amount_of_solar_radiation wind_speed wind_direction rainfall precipitation undefined undefined undefined undefined undefined undefined".split(" ");
         int i=0;
         mKeys =new String[env_id.length];
@@ -66,6 +63,7 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
         }
         mDataKeys += "]";
     }
+
     public void getToken(){
         try {
             new TokenGetter().execute(new URL(TOKEN_REQUEST));
@@ -73,7 +71,9 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
             e.printStackTrace();
         }
     }
-    @Override //@Params : date time
+
+    //@Params : date time
+    @Override
     public void downloadSensorData(){
         try {
             //TODO:比較
@@ -82,6 +82,7 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
             e.printStackTrace();
         }
     }
+
     // InputStream -> String
     static String InputStreamToString(InputStream is) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -95,50 +96,23 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
         return sb.toString();
     }
 
-
-    private synchronized  void encodeRequestJSon(String json_str) {
-        try {
-            String keys[] = {"Token", "Response","Expire"};
-            JSONObject jsonData = new JSONObject(json_str);
-            // 配列を取得する場合
-//              JSONArray jsonArray = new JSONObject(json_str).getJSONArray("オブジェクト名");
-
-            String st = jsonData.getString(keys[0]);
-
-            Tokens = new ConcurrentHashMap<String,String>();
-            for(int i=0;i<keys.length;i++){
-                Tokens.put(keys[i],jsonData.getString(keys[i]));
-                //      mTokens[i] = jsonData.getString(keys[i]);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
-
     private final class TokenGetter extends AsyncTask<URL, Void, Void> {
         @Override
         protected Void doInBackground(URL... urls) {
-            String str_response  ="";
-            Log.d("HttpURLConnect", "http start");
-            // アクセス先URL
             final URL url = urls[0];
             Log.d("HttpURLConnect", url.toString());
             HttpURLConnection con = null;
             try {
-           //     DATAREQUEST+"?Name="+name+"&Keys="+keys+"&Query="+query
                 con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");//this is not necessary. Cuz default method is GET
                 con.setRequestProperty("Content-Type", "multipart/form-data");
                 con.setDoInput(true);
                 con.connect();
-                // HTTPレスポンスコード
                 final int status = con.getResponseCode();
-                Log.d("HttpURLConnect", "HTTPstatus:" + status);
+                Log.d("Getting Tokens", "HTTPstatus:" + status);
                 if (status == HttpURLConnection.HTTP_OK) {
-                    Log.d("HttpURLConnect", "connect success");
-
-                    final InputStream in = con.getInputStream();
-                    str_response = InputStreamToString(in);
+                    InputStream in = con.getInputStream();
+                    String str_response = InputStreamToString(in);
                     in.close();
                     Log.d("HttpURLConnect", str_response);
                     encodeRequestJSon(str_response);
@@ -151,16 +125,30 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
                 e.printStackTrace();
             } finally {
                 if (con != null) {
-                    // コネクションを切断
                     con.disconnect();
                 }
             }
             return null;
         }
+        private void encodeRequestJSon(String json_str) {
+            try {
+                String keys[] = {"Token", "Response","Expire"};
+                JSONObject jsonData = new JSONObject(json_str);
+                String st = jsonData.getString(keys[0]);
+                Tokens = new ConcurrentHashMap<String,String>();
+                for(int i=0;i<keys.length;i++){
+                    Tokens.put(keys[i],jsonData.getString(keys[i]));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
     private final class SensorDataGetter extends AsyncTask<URL, Void, Void> {
         private String TAG = "SensDGetter";
-        private int mGetPeriod = 30;
+        private int mGetPeriod = 23;
+        private int download_interval = 3;
         @Override
         protected Void doInBackground(URL... urls) {
             if(Tokens == null) {
@@ -171,65 +159,57 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
             Log.d(TAG+" key", mDataKeys);
             Log.d(TAG+" name", mGatewayNAME);
 
-            Calendar cal = Calendar.getInstance();
-            int year   = cal.get(Calendar.YEAR);
-            int month  = cal.get(Calendar.MONTH)+1;
-            int day    = cal.get(Calendar.DATE);
+            long toDateTime   = System.currentTimeMillis();
+            long fromDateTime = toDateTime - (mGetPeriod*24*60*60*1000);
 
-            cal.clear();
-            cal.set(year, month-1, day);
+            Log.d(TAG+" frDateTime", (new Date(fromDateTime)).getDate() +"日"+(new Date(fromDateTime)).getHours() +"");
+            Log.d(TAG+" toDateTime", (new Date(toDateTime)).getDate()   +"日"+(new Date(toDateTime)).getHours() +"");
 
-            long now_millistime= System.currentTimeMillis();
-            Log.d(TAG+" now",now_millistime+"");
-            long toDateTime   = now_millistime+(9*60*60*1000);
-            long fromDateTime = toDateTime-(20*24*60*60*1000);
-            Log.d(TAG+" frDateTime", fromDateTime +"");
-            Log.d(TAG+" toDateTime", toDateTime +"");
             final String all_file_name = mID.getGateWayID()+"_"+mID.getNodeID()+".csv";
             final String day_file_name = mID.getGateWayID()+"_"+mID.getNodeID()+"_days.csv";
             File all_file = new File(ChartActivity.getInstance().getFilesDir() +"/"+all_file_name);
             File day_file = new File(ChartActivity.getInstance().getFilesDir() +"/"+day_file_name);
             //FIXME
-            if(day_file.exists()) {
-                Log.d(TAG," delete day_file");
-                day_file.delete();
-            }
             if(all_file.exists()) {
                 Log.d(TAG," delete all_file");
                 all_file.delete();
             }
-            try {
-
-            while (toDateTime - fromDateTime > 3*24*60*60*1000){
-
-                long after_3days = fromDateTime + 3*24*60*60*1000;
-                String queryDate = "{\"$where\":\"this.time >= new Date("+fromDateTime+") && this.time <= new Date("+after_3days+")\",";
-            //    String queryFromDate = "{\"$where\":\"this.time >= new Date("+fromDateTime+")\",";
-                Log.d(TAG,(new Date(fromDateTime)).getDate()+"");
-                Log.d(TAG,(new Date(after_3days)).getDate()+"");
-                String query = URLEncoder.encode(queryDate + mQueryPost, "UTF-8");
-            //    Log.d(TAG+" query", query);
-                String request = DATA_REQUEST +"?Name="+mGatewayNAME+"&Keys="+mDataKeys+"&Query="+query;
-                requestSensData(request);
-
-                fromDateTime += 3*24*60*60*1000;
+            if(day_file.exists()) {
+                Log.d(TAG," delete day_file");
+                day_file.delete();
             }
-            Log.d(TAG+" last commu", "--here");
-                Log.d(TAG,(new Date(fromDateTime)).getDate()+"");
-                Log.d(TAG,(new Date(toDateTime)).getDate()+"");
-            String queryDate = "{\"$where\":\"this.time >= new Date("+fromDateTime+") && this.time <= new Date("+toDateTime+")\",";
-            String query = URLEncoder.encode(queryDate + mQueryPost, "UTF-8");
-         //   Log.d(TAG+" query", query);
-            String request = DATA_REQUEST +"?Name="+mGatewayNAME+"&Keys="+mDataKeys+ "&Query="+query;
-            requestSensData(request);
 
+            try {
+                while (toDateTime - fromDateTime > download_interval*24*60*60*1000){
+                    long interval_date = fromDateTime + download_interval*24*60*60*1000;
+                    Log.d(TAG+" frDateTime", (new Date(fromDateTime)).getDate() +"日"+(new Date(fromDateTime)).getHours() +"-");
+                    Log.d(TAG+" toDateTime", (new Date(interval_date)).getDate() +"日"+(new Date(interval_date)).getHours() +"");
+                    String queryDate = "{\"$where\":\"this.time >= new Date("+fromDateTime+") && this.time <= new Date("+interval_date+")\",";
+                    String query = URLEncoder.encode(queryDate + mQueryPost, "UTF-8");
+                    String request = DATA_REQUEST +"?Name="+mGatewayNAME+"&Keys="+mDataKeys+"&Query="+query;
+                    requestSensData(request);
+                    fromDateTime += download_interval*24*60*60*1000;
+                }
+                Log.d(TAG+" last commu", "--here");
+                Log.d(TAG+" frDateTime", (new Date(fromDateTime)).getDate() +"日"+(new Date(fromDateTime)).getHours() +"-");
+                Log.d(TAG+" toDateTime", (new Date(toDateTime)).getDate() +"日"+(new Date(toDateTime)).getHours() +"");
+                String queryDate = "{\"$where\":\"this.time >= new Date("+fromDateTime+") && this.time <= new Date("+toDateTime+")\",";
+                String query = URLEncoder.encode(queryDate + mQueryPost, "UTF-8");
+                String request = DATA_REQUEST +"?Name="+mGatewayNAME+"&Keys="+mDataKeys+ "&Query="+query;
+                String[] result = requestSensData(request);
+                if(Integer.parseInt(result[1]) == 0){
+                    String range = (new Date(fromDateTime)).getDate() +"日"+(new Date(fromDateTime)).getHours() +"から"+
+                            (new Date(toDateTime)).getDate() +"日"+(new Date(toDateTime)).getHours() +"までのデータがありません";
+                    Toast.makeText(ChartActivity.getInstance(),range,Toast.LENGTH_SHORT).show();
+                }
             }catch (UnsupportedEncodingException e){
                 e.printStackTrace();
             }
             return null;
         }
-        private void requestSensData(String request){
+        private String[] requestSensData(String request){
             HttpURLConnection con = null;
+            String[] result={};
             try {
                 final URL url = new URL(request);
                 Log.d(TAG, url.toString());
@@ -242,12 +222,10 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
                 final int status = con.getResponseCode();
                 Log.d(TAG, "HTTPstatus:" + status);
                 if (status == HttpURLConnection.HTTP_OK) {
-                    Log.d(TAG, "connect success");
                     final InputStream in = con.getInputStream();
-                    String str_response = "";
-                    str_response = InputStreamToString(in);
+                    String str_response = InputStreamToString(in);
                     in.close();
-                    encodeResponseJSon(str_response);
+                    result = encodeResponseJSon(str_response);
                 }
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -257,72 +235,90 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
                 e.printStackTrace();
             } finally {
                 if (con != null) {
-                    // コネクションを切断
                     con.disconnect();
                 }
             }
+            return result;
         }
-        private synchronized  void encodeResponseJSon(String json_str) {
+        private synchronized String[] encodeResponseJSon(String json_str) {
+            String[] result = new String[2];
             try {
                 String keys[] = {"Response", "List"};
                 JSONObject ReceivedJson = new JSONObject(json_str);
-                // 配列を取得する場合
-//              JSONArray jsonArray = new JSONObject(json_str).getJSONArray("オブジェクト名");
-           //     Log.d(TAG,ReceivedJson.toString());
+
                 String response_result = ReceivedJson.getString(keys[0]);
                 Log.d(TAG + " Request", response_result);
-                String response_data = ReceivedJson.getString(keys[1]);
-            //    response_data = response_data.substring(1,response_data.length()-2);
+                result[0] = response_result;
+                String response_data   = ReceivedJson.getString(keys[1]);
+                result[1] = response_data.length()+"";
+                if(response_data.length() == 0){
+                   return result;
+                }
                 String regex = "(\\{.+?:.+?\\})";
                 Pattern p = Pattern.compile(regex);
                 Matcher m = p.matcher(response_data);
                 final String all_file_name = mID.getGateWayID()+"_"+mID.getNodeID()+".csv";
                 final String day_file_name = mID.getGateWayID()+"_"+mID.getNodeID()+"_days.csv";
 
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy'-'MM'-'dd'T'kk':'mm':'ss'.000000Z'");
+                SimpleDateFormat sdf_webapi= new SimpleDateFormat("yyyy'-'MM'-'dd'T'kk':'mm':'ss'.000000Z'");
                 SimpleDateFormat sdf_ymdhm = new SimpleDateFormat("yyyy'/'MM'/'dd HH:mm");
-                SimpleDateFormat sdf_ymd   = new SimpleDateFormat("yyyy'/'MM'/'dd");
-                String date_time;
-                String date;
-                int cnt_temp = 0;
+                SimpleDateFormat sdf_ym    = new SimpleDateFormat("yyyy'年'MM'月'");
 
+                String date_time;
+                String date_month="";
+                float cumu_temp = 0;
+
+                float from_date = 0;
+                float fromtime;
+                int cnt_temp  = 0;
                 while (m.find()){
-                    Log.d(TAG+" json data",m.group());
+                //    Log.d(TAG+" json data",m.group());
                     JSONObject json_data = new JSONObject(m.group());
+                    String sentence;
                     if(json_data.has("air_temperature")) {
-                        cnt_temp++;
-                        date_time = sdf_ymdhm.format(sdf.parse(json_data.getString("time")));
-                        date      = sdf_ymd.format(sdf.parse(json_data.getString("time")));
-                        String temperature = json_data.getString("air_temperature");
-                        Log.d(TAG, "save "+temperature+"@"+date_time);
-                        FileHelper.writeAsStrFile(ChartActivity.getInstance(), all_file_name, date_time, temperature);
+                        date_time   = sdf_ymdhm.format(sdf_webapi.parse(json_data.getString("time")));
+                        date_month  = sdf_ym.format(   sdf_webapi.parse(json_data.getString("time")));
+                        String s_temperature = json_data.getString("air_temperature");
+                        float f_temperature = Float.parseFloat(s_temperature);
+                        if(cnt_temp == 0){
+                            cumu_temp += f_temperature;
+                            from_date = sdf_webapi.parse(json_data.getString("time")).getMinutes() / 24/60/60/60/1000;
+                            cnt_temp++;
+                        }else {
+                            float intervel = sdf_webapi.parse(json_data.getString("time")).getMinutes() / 24/60/60/60/1000 - from_date;
+                            cumu_temp += f_temperature*intervel;
+                        }
+                        Log.d(TAG, "save "+s_temperature+",null"+"@"+date_time);
+                        String got_data =s_temperature+","+cumu_temp+",null";
+                        FileHelper.writeAsStrFile(ChartActivity.getInstance(), all_file_name, date_time, got_data);
                     }
+                    if(json_data.has("amount_of_solar_radiation")) {
+                        date_time   = sdf_ymdhm.format(sdf_webapi.parse(json_data.getString("time")));
+                        date_month  = sdf_ym.format(   sdf_webapi.parse(json_data.getString("time")));
+
+                        String radiation = json_data.getString("amount_of_solar_radiation");
+                        String got_data = "null,null,"+radiation;
+                        Log.d(TAG, "save null,null"+radiation+"@"+date_time);
+                        FileHelper.writeAsStrFile(ChartActivity.getInstance(), all_file_name, date_time, got_data);
+                    }
+
                 }
-                String file_content;
-//                file_content = FileHelper.readAsStrFile(ChartActivity.getInstance(), all_file_name);
-//                Log.d(TAG+"check1",file_content);
-                FileHelper.pickUpDistinguishingValue(all_file_name, day_file_name);
-                file_content = FileHelper.readAsStrFile(ChartActivity.getInstance(), day_file_name);
-                Log.d(TAG+"file content",cnt_temp+" "+file_content);
+                FileHelper.pickUpDistinguishingValue(all_file_name,   day_file_name);
+                FileHelper.readAsStrFile(ChartActivity.getInstance(), day_file_name);//FIXME: delete me.
+
+                final String latest_date = date_month;
                 ChartActivity.mHandler.post(new Runnable() { //viewの変更はmHandlerから行う。
                     @Override
                     public void run() {
-                        new ChartActivity().createChart(day_file_name);
+                        new ChartActivity().createChart(day_file_name,latest_date);
                     }
                 });
-            /*
-            ConcurrentHashMap request = new ConcurrentHashMap<String,String>();
-            for(int i=0;i<keys.length;i++){
-                request.put(keys[i],jsonData.getString(keys[i]));
-          //      mTokens[i] = jsonData.getString(keys[i]);
-            }
-            */
-                //    Log.d("data",request.get(keys[1]).toString());
             } catch (JSONException e) {
                 e.printStackTrace();
             }catch (ParseException e){
                 e.printStackTrace();
             }
+            return result;
         }
     }
 }

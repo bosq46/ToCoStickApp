@@ -95,7 +95,7 @@ public class FileHelper {
         return text;
     }
 
-    public static String  readFile(Context context, String file_name){
+    public static String  readAssetFile(Context context, String file_name){
         StringBuilder sb_data = new StringBuilder();
         try {
             AssetManager assetManager = context.getResources().getAssets();
@@ -116,7 +116,7 @@ public class FileHelper {
     }
     public static ArrayList readCsvFile(Context context, String file_name){
         ArrayList al_csv_data = new ArrayList();
-        String[] arr_sen_data = readFile(context, file_name).split("\n");
+        String[] arr_sen_data = readAssetFile(context, file_name).split("\n");
         if(arr_sen_data.length <= 1){
             Log.v("readCsvFile","データが少ない、または、取得できない");
         }
@@ -142,7 +142,7 @@ public class FileHelper {
         }
         return al_csv_data;
     }
-
+/*
     public static void setDbFromCsv(Context context, String file_name, SQLiteDatabase mDb){
         StringBuilder sb_data = new StringBuilder();
         try {
@@ -207,6 +207,7 @@ public class FileHelper {
             Log.e(TAG,e+"");
         }
     }
+    */
     public static void moveFromAssetsToLocal(Context context, String assets_file, String local_file){
         try {
             AssetManager assetManager = context.getResources().getAssets();
@@ -226,7 +227,7 @@ public class FileHelper {
             Log.e(TAG,e.toString());
         }
     }
-    public static ArrayList readFile(Context context,String file_name,int i){
+    public static ArrayList readFile(Context context,String file_name){
         ArrayList file_lines = new ArrayList();
         BufferedReader in = null;
         try {
@@ -238,9 +239,9 @@ public class FileHelper {
             }
             in.close();
         }catch(FileNotFoundException e){
-            Log.e(TAG,e.toString());
+            Log.e(TAG, e.toString());
         }catch(IOException e){
-            Log.e(TAG,e.toString());
+            Log.e(TAG, e.toString());
         }
         return file_lines;
     }
@@ -257,8 +258,11 @@ public class FileHelper {
             double d_ave = 0;
             double d_hig = 0;
             double d_min = 0;
+            double d_radi = 0;
+            double d_cumu = 0;
             String date_ymd = "";
-            int cnt_days = 1;
+            int cnt_temp_days = 1;
+            int cnt_radi_days = 1;
             int cnt_row = 0;
             Date date;
             String line;
@@ -272,34 +276,48 @@ public class FileHelper {
                 date = sdf_csv.parse(elements[TIME_COLUMN_NUM]);
                 if (cnt_row == 1) {
                     date_ymd = sdf_ymd.format(date);
-                    Log.d(TAG+cnt_row,date_ymd);
                 } else {
                     if (!date_ymd.equals(sdf_ymd.format(date)) || !in.ready()) {
-                        d_ave /= cnt_days;
+                        d_ave /= cnt_temp_days;
                         d_ave = ((int)(d_ave*10))/10;
-                        String new_row = date_ymd+","+d_ave+","+d_hig+","+d_min;
-                        Log.d(TAG+"pickupVal",new_row);
-//                        every_day_file.println(new_row);
+                        d_radi /= cnt_radi_days;
+                        String new_row = date_ymd+","+d_ave+","+d_hig+","+d_min+","+d_cumu+","+d_radi;
+                        Log.d(TAG+"PickupVal",new_row);
                         every_day_file.write(new_row+"\n");
-                        cnt_days = 1;
+                        d_ave = 0;
+                        d_hig = 0;
+                        d_min = 0;
+                        d_radi = 0;
+                        cnt_temp_days = 1;
+                        cnt_radi_days = 1;
                         date_ymd = sdf_ymd.format(date);
                     }
                 }
-                Double line_temp = Double.parseDouble(elements[TEMPERATURE_COLUMN_NUM]);
-                if (cnt_days == 1) {
-                    d_ave = line_temp;
-                    d_hig = line_temp;
-                    d_min = line_temp;
-                } else {
-                    d_ave += line_temp;
-                    if (d_hig < line_temp)
+
+                if(!elements[TEMPERATURE_COLUMN_NUM].equals("null")) {
+                    Double line_temp = Double.parseDouble(elements[TEMPERATURE_COLUMN_NUM]);
+                    d_cumu += Double.parseDouble(elements[2]);
+                    if (cnt_temp_days == 1) {
+                        d_ave = line_temp;
                         d_hig = line_temp;
-                    if (d_min > line_temp)
                         d_min = line_temp;
+                    } else {
+                        d_ave += line_temp;
+                        if (d_hig < line_temp)
+                            d_hig = line_temp;
+                        if (d_min > line_temp)
+                            d_min = line_temp;
+                    }
+                    cnt_temp_days++;
+                }
+                if(!elements[3].equals("null")) {
+                    d_radi += Double.parseDouble(elements[3]);
+                    Log.d(TAG,"-- rad "+d_radi+"@"+date_ymd);
+                    cnt_radi_days++;
                 }
                 cnt_row++;
-                cnt_days++;
-            //    Log.d(TAG,);
+                Log.d(TAG,"cumu "+d_cumu);
+                Log.d(TAG,"radi "+d_radi);
             }
             in.close();
             every_day_file.close();

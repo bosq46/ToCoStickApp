@@ -5,48 +5,48 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.LineChart;
 
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.Locale;
 import android.os.Handler;
+import android.widget.Toast;
 
 /**
  * Created by Kohki on 2016/02/24.
  */
-public class ChartActivity extends Activity {
+public class ChartActivity extends FragmentActivity {
     private static final String TAG = "ChartAct";
     private static ChartActivity sInstance;
 
     private static TextView mTvGraphYearMonth;
-    public static boolean isPaintMoisture;
+    public static boolean isDayScaleGraph = true;
     public static boolean isPaintRadiation;
-    public static boolean isPaintHumidity;
-    public static boolean isPaintTemperature;
     public static boolean isPaintCumuTemp;
+    public static boolean isPaintVentilation;
 
     public static final SimpleDateFormat sdf_ymd = new SimpleDateFormat("yyyy'年'MM'月'dd'日'", Locale.JAPAN);
     public static final SimpleDateFormat sdf_ym  = new SimpleDateFormat("yyyy'年'MM'月'");
 
     private static GraphMaker mGMaker;
-    private int   mGraphScale = 1;//1:every year, 2:every month, 3:every week, 4:every 3days, 5:every 1day(priority -> 1,2,3)
+  //  private int   mGraphScale = 1;//1:every year, 2:every month, 3:every week, 4:every 3days, 5:every 1day(priority -> 1,2,3)
     private String mDataSource = "asset";
     private static final String DATASOURCE_WEB = "web";
     private static final String DATASOURCE_WIRELESS = "wireless";
     private WebAPICommunication mWebAPI;
 
     public static Handler mHandler;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,39 +79,42 @@ public class ChartActivity extends Activity {
             }
         }
         */
-        //TODO:Webから取得
-        mWebAPI = new WebAPICommunication();
-        mWebAPI.getToken();
-        mWebAPI.downloadSensorData();
-     //   FileHelper.pickUpDistinguishingValue(WEB_DATA_FILE, WEB_EVERY_DAY_DATA_FILE);
 
-        mGMaker = new GraphMaker((LineChart) findViewById(R.id.chart));
+        mWebAPI = new WebAPICommunication();
+    //    mWebAPI.getToken();
+    //    mWebAPI.downloadSensorData();
+    //TODO:after,select download range
+    //    findViewById(R.id.btn_get_webapi).setOnClickListener(mWebAPI);
+        findViewById(R.id.btn_get_webapi).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mWebAPI.getToken();
+                mWebAPI.downloadSensorData();
+            }
+        });
+        findViewById(R.id.btn_record_ventilation).setOnClickListener(new VentilationRecBtnClickListener());
+
+        mGMaker = new GraphMaker((LineChart) findViewById(R.id.chart), (TextView) findViewById(R.id.tv_graph_year_month) );
         mTvGraphYearMonth = (TextView) findViewById(R.id.tv_graph_year_month);
 
-        isPaintTemperature = false;
-        isPaintHumidity    = false;
         isPaintRadiation   = false;
-        isPaintMoisture    = false;
         isPaintCumuTemp    = false;
+        isPaintVentilation = false;
 
-        Button btn_temp = (Button) findViewById(R.id.btn_temperature);
-        Button btn_humi = (Button) findViewById(R.id.btn_humidity);
-        Button btn_radi = (Button) findViewById(R.id.btn_radiation);
-        Button btn_mois = (Button) findViewById(R.id.btn_moisture);
-
-        setBtnColor(btn_temp);
-        setElementBtnCfg(btn_temp);
-
-        setBtnColor(btn_humi);
-        setElementBtnCfg(btn_humi);
+        Button btn_radi = (Button) findViewById(R.id.btn_show_radiation);
+        Button btn_cumu = (Button) findViewById(R.id.btn_show_cumulative);
+        Button btn_vent = (Button) findViewById(R.id.btn_show_ventilation);
 
         setBtnColor(btn_radi);
-        setElementBtnCfg(btn_radi);
+        setElementBtnListener(btn_radi);
 
-        setBtnColor(btn_mois);
-        setElementBtnCfg(btn_mois);
+        setBtnColor(btn_cumu);
+        setElementBtnListener(btn_cumu);
 
-        findViewById(R.id.btn_record_ventilation).setOnClickListener(new VentilationRecBtnClickListener());
+        setBtnColor(btn_vent);
+        setElementBtnListener(btn_vent);
+
+        /*
         findViewById(R.id.btn_month_minus).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -136,29 +139,24 @@ public class ChartActivity extends Activity {
                 Log.d(TAG, sdf_ym.format(mGMaker.mLatestMonth));
             }
         });
-        /*
-        mWebAPI = new WebAPICommunication();
-    //    findViewById(R.id.btn_get_webapi).setOnClickListener(mWebAPI);
-        mWebAPI.getToken();
-        mWebAPI.downloadSensorData();
         */
-        findViewById(R.id.btn_get_webapi).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mWebAPI.downloadSensorData();
-            }
-        });
-
+        //TODO: NavigaationDrawer
+    /*    IDSelecterFragment fragment = new IDSelecterFragment();
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.add(R.id.drawer, fragment);
+        transaction.commit();*/
+        findViewById(R.id.btn_change_field).setOnClickListener(new FieldChangeBtnClickListener());
     }
 
     private boolean checkFile(Context context, String file_name){
         File file = context.getFileStreamPath(file_name);
         return file.exists();
     }
-    public static void createChart(String file_name){
-        Log.d(TAG,file_name);
-        Date graph_latest_date = new Date();
-        mGMaker.makeLineChart(file_name);
+    /* createChart(String file_name,String graph_title) はダウンロードした後に実行される */
+    public static void createChart(String file_name,String graph_title){
+      //  Log.d(TAG,file_name);
+        mGMaker.makeLineChart(file_name,isDayScaleGraph);
+        mTvGraphYearMonth.setText(graph_title);
         /*
         switch (mDataSource) {
             case DATASOURCE_WEB:
@@ -177,31 +175,31 @@ public class ChartActivity extends Activity {
                 break;
         }
         */
-        mTvGraphYearMonth.setText(sdf_ym.format(graph_latest_date));
+    }
+    /* createChart(String file_name,String graph_title) はボタンなどのリスナーで呼ばれる */
+    public static void createChart(){
+        FileContract mID = new FileContract(ChartActivity.getInstance());
+        String file_name;
+        if(isDayScaleGraph)
+            file_name = mID.getGateWayID()+"_"+mID.getNodeID()+"_days.csv";
+        else
+            file_name = mID.getGateWayID()+"_"+mID.getNodeID()+".csv";
+        Log.d(TAG, "create "+file_name);
+        ArrayList al_file = FileHelper.readFile(ChartActivity.getInstance(), file_name);
+        if(al_file.size() == 0) {
+            Toast.makeText(ChartActivity.getInstance(), "データがありません。\nダウンロードしてください", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String latest_date =  ((String)al_file.get(al_file.size()-1)).split(",")[0];
+        String[] ymd = latest_date.split("/");
+        String latest_ym = ymd[0]+"年"+ymd[1]+"月";
+        Log.d(TAG, "Graph title " + latest_ym);
+        createChart(file_name, latest_ym);
     }
 
     private void setBtnColor(Button btn){
         switch (btn.getId()) {
-            case R.id.btn_temperature:
-                if (isPaintTemperature) {
-                    btn.setBackgroundColor(Color.rgb(255, 94, 25));
-                    btn.setAlpha(1f);
-                    break;
-                } else {
-                    btn.setBackgroundColor(Color.rgb(250, 250, 250));
-                    btn.setAlpha(0.7f);
-                }
-                break;
-            case R.id.btn_humidity:
-                if (isPaintHumidity) {
-                    btn.setBackgroundColor(Color.rgb(0,255, 255));
-                    btn.setAlpha(1f);
-                }else {
-                    btn.setBackgroundColor(Color.rgb(250, 250, 250));
-                    btn.setAlpha(0.7f);
-                }
-                break;
-            case R.id.btn_radiation:
+            case R.id.btn_show_radiation:
                 if (isPaintRadiation) {
                     btn.setBackgroundColor(Color.rgb(255,241,15));
                     btn.setAlpha(1f);
@@ -210,57 +208,56 @@ public class ChartActivity extends Activity {
                     btn.setAlpha(0.7f);
                 }
                 break;
-            case R.id.btn_moisture:
-                if (isPaintMoisture) {
-                    btn.setBackgroundColor(Color.rgb(177, 104, 51));
+            case R.id.btn_show_cumulative:
+                if (isPaintCumuTemp) {
+                    btn.setBackgroundColor(Color.rgb(255, 94, 25));
                     btn.setAlpha(1f);
+                    break;
                 } else {
+                    btn.setBackgroundColor(Color.rgb(250, 250, 250));
+                    btn.setAlpha(0.7f);
+                }
+                break;
+            case R.id.btn_show_ventilation:
+                if (isPaintVentilation) {
+                    btn.setBackgroundColor(Color.rgb(0,255, 255));
+                    btn.setAlpha(1f);
+                }else {
                     btn.setBackgroundColor(Color.rgb(250, 250, 250));
                     btn.setAlpha(0.7f);
                 }
                 break;
         }
     }
-    private void setElementBtnCfg(Button btn){
+    private void setElementBtnListener(Button btn){
         switch (btn.getId()){
-            case R.id.btn_temperature:
+            case R.id.btn_show_radiation:
                 btn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        isPaintTemperature =! isPaintTemperature;
-                        isPaintCumuTemp =! isPaintCumuTemp;
+                        isPaintRadiation = !isPaintRadiation;
                         setBtnColor((Button) v);
-                        createChart("");
+                        createChart();
                     }
                 });
                 break;
-            case R.id.btn_humidity:
+            case R.id.btn_show_cumulative:
                 btn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        isPaintHumidity =! isPaintHumidity;
+                        isPaintCumuTemp = !isPaintCumuTemp;
                         setBtnColor((Button) v);
-                        createChart("");
+                        createChart();
                     }
                 });
                 break;
-            case R.id.btn_radiation:
+            case R.id.btn_show_ventilation:
                 btn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        isPaintRadiation =! isPaintRadiation;
+                        isPaintVentilation = !isPaintVentilation;
                         setBtnColor((Button) v);
-                        createChart("");
-                    }
-                });
-                break;
-            case R.id.btn_moisture:
-                btn.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        isPaintMoisture =! isPaintMoisture;
-                        setBtnColor((Button) v);
-                        createChart("");
+                        createChart();
                     }
                 });
                 break;
@@ -287,7 +284,7 @@ public class ChartActivity extends Activity {
             default:
                 break;
         }*/
-        createChart("");
+        createChart();
         super.onConfigurationChanged(newConfig);
     }
 }

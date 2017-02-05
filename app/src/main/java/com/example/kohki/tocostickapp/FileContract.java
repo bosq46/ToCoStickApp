@@ -33,11 +33,11 @@ public class FileContract {
     public static final String WIRELESS_EVERY_DAY_DATA_FILE   = "wireless_every_day_data.CSV";
     public static final String WEB_EVERY_DAY_DATA_FILE         = "web_every_day_data.CSV";
     public static final String OUTSIDE_EVERY_DAY_TENPERATURE = "outside_every_day_tem.CSV";
-    public static final String VENTILATION_REC_FILE  = "ventilation_rec.CSV";
     private static final String PREFARENCE_FILE_NAME = "pre_web_data_file";
     private List mGatewayNodeID;
 
     private Context context;
+
     public FileContract(Context context){
         this.context = context;
         try {
@@ -57,7 +57,7 @@ public class FileContract {
     public String getFieldName(){
         SharedPreferences prefer = context.getSharedPreferences(PREFARENCE_FILE_NAME,MODE_PRIVATE);
         String[] row = (String[])mGatewayNodeID.get(0);
-        return prefer.getString("fieldname",row[1]);
+        return prefer.getString("fieldname",row[0]);
     }
     public int getGateWayID(){
         SharedPreferences prefer = context.getSharedPreferences(PREFARENCE_FILE_NAME,MODE_PRIVATE);
@@ -68,5 +68,17 @@ public class FileContract {
         SharedPreferences prefer = context.getSharedPreferences(PREFARENCE_FILE_NAME,MODE_PRIVATE);
         String[] row = (String[])mGatewayNodeID.get(0);
         return prefer.getInt("nodeid",Integer.parseInt(row[2]));
+    }
+    public void setFieldID(String name,int gateway, int node){
+        SharedPreferences prefer = context.getSharedPreferences(PREFARENCE_FILE_NAME,MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefer.edit();
+        editor.putString("fieldname", name);
+        editor.putInt("gatewayid", gateway);
+        editor.putInt("nodeid", node);
+        editor.commit();
+    }
+    public List getFieldID(){
+        List ids = mGatewayNodeID;
+        return ids;
     }
 }

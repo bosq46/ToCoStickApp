@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.TextView;
 
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.LineChart;
@@ -32,24 +33,21 @@ public class GraphMaker {
     public static Date mLatestMonth;
     public GraphData mGData;
     private LineChart mLineChart;
+    private TextView mChartTitle;
     private LineData mDataSet;
 
-    GraphMaker(LineChart line_chart){
+    GraphMaker(LineChart line_chart, TextView tv){
         mLineChart = line_chart;
+        mChartTitle = tv;
     }
 
-    void makeLineChart(String data_file, int scale) {
-        mGData = new GraphData(ChartActivity.getInstance(), mLineChart);
-        mDataSet = mGData.getLineDataOfEveryDay(data_file);
+    void makeLineChart(String data_file,boolean isDayScale) {
+        mGData   = new GraphData(ChartActivity.getInstance(), mLineChart);
+        mDataSet = mGData.getLineData(data_file,isDayScale);
         mLineChart.setData(mDataSet);
         setChart();
     }
-    void makeLineChart(String data_file) {
-        mGData = new GraphData(ChartActivity.getInstance(), mLineChart);
-        mDataSet = mGData.getLineDataOfEveryMonth(data_file);
-        mLineChart.setData(mDataSet);
-        setChart();
-    }
+
     void setChart(){
         mLineChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
@@ -75,12 +73,11 @@ public class GraphMaker {
         mLineChart.setPinchZoom(true);
         // set an alternative background color
         mLineChart.setBackgroundColor(Color.WHITE);
-        //    mLineChart.setData(mGData.getLineData()); //---------------
-
         //  ラインの凡例の設定
         Legend l = mLineChart.getLegend();
-        l.setForm(Legend.LegendForm.LINE);
+        l.setForm(Legend.LegendForm.SQUARE);
         l.setTextColor(Color.BLACK);
+        l.setTextSize(8);
 
         YAxis leftAxis = mLineChart.getAxisLeft();
         leftAxis.setTextColor(Color.BLACK);
@@ -95,8 +92,14 @@ public class GraphMaker {
         YAxis rightAxis = mLineChart.getAxisRight();
         //    rightAxis.setAxisMaxValue(0);
         //    rightAxis.setAxisMinValue(100f);
-        //    rightAxis.setStartAtZero(true);
-        //    rightAxis.setEnabled(true);
+        rightAxis.setStartAtZero(true);
+        rightAxis.setEnabled(true);
+        rightAxis.setValueFormatter(new YAxisValueFormatter() {
+            @Override
+            public String getFormattedValue(float v, YAxis yAxis) {
+                return v +"%";
+            }
+        });
         rightAxis.setDrawGridLines(true);
 
 
