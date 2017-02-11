@@ -92,7 +92,7 @@ public abstract class WebDataDLBtnClickListener implements View.OnClickListener 
             Context context = ChartActivity.getInstance();
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(context.LAYOUT_INFLATER_SERVICE);
 
-            final View dialog_layout = inflater.inflate(R.layout.input_webapi_menu, null);
+            View dialog_layout = inflater.inflate(R.layout.input_webapi_menu, null);
             menu_layout = (LinearLayout) dialog_layout.findViewById(R.id.input_webapi_layout);
             date_view   = (LinearLayout) inflater.inflate(R.layout.input_webapi_date, null);
             time_view   = (LinearLayout) inflater.inflate(R.layout.input_webapi_time, null);

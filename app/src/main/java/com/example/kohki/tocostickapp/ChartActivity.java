@@ -144,8 +144,24 @@ public class ChartActivity extends FragmentActivity {
     /*    IDSelecterFragment fragment = new IDSelecterFragment();
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.add(R.id.drawer, fragment);
-        transaction.commit();*/
+        transaction.commit();
+        */
+
         findViewById(R.id.btn_change_field).setOnClickListener(new FieldChangeBtnClickListener());
+        findViewById(R.id.btn_change_scale).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Button btn = (Button)v;
+                isDayScaleGraph = !isDayScaleGraph;
+                if(isDayScaleGraph)
+                    btn.setText("日毎");
+                else
+                    btn.setText("3日間");
+            }
+        });
+        String file_name = "t_temperature.csv";
+        FileHelper.moveFromAssetsToLocal(this,"tokushima_temp_data.csv",file_name);
+        createChart(file_name,"2017年1月");
     }
 
     private boolean checkFile(Context context, String file_name){
@@ -153,8 +169,7 @@ public class ChartActivity extends FragmentActivity {
         return file.exists();
     }
     /* createChart(String file_name,String graph_title) はダウンロードした後に実行される */
-    public static void createChart(String file_name,String graph_title){
-      //  Log.d(TAG,file_name);
+    public static void createChart(String file_name, String graph_title){
         mGMaker.makeLineChart(file_name,isDayScaleGraph);
         mTvGraphYearMonth.setText(graph_title);
         /*
@@ -184,7 +199,6 @@ public class ChartActivity extends FragmentActivity {
             file_name = mID.getGateWayID()+"_"+mID.getNodeID()+"_days.csv";
         else
             file_name = mID.getGateWayID()+"_"+mID.getNodeID()+".csv";
-        Log.d(TAG, "create "+file_name);
         ArrayList al_file = FileHelper.readFile(ChartActivity.getInstance(), file_name);
         if(al_file.size() == 0) {
             Toast.makeText(ChartActivity.getInstance(), "データがありません。\nダウンロードしてください", Toast.LENGTH_SHORT).show();
@@ -194,7 +208,7 @@ public class ChartActivity extends FragmentActivity {
         String[] ymd = latest_date.split("/");
         String latest_ym = ymd[0]+"年"+ymd[1]+"月";
         Log.d(TAG, "Graph title " + latest_ym);
-        createChart(file_name, latest_ym);
+    //    createChart(file_name, latest_ym);
     }
 
     private void setBtnColor(Button btn){

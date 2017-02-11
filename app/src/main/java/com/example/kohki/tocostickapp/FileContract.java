@@ -47,7 +47,7 @@ public class FileContract {
             String line;
             mGatewayNodeID = new ArrayList();
             while ((line = reader.readLine()) != null) {
-                Log.d(TAG,line);
+            //    Log.d(TAG,line);
                 mGatewayNodeID.add(line.split(","));
             }
         }catch (IOException e){

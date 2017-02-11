@@ -239,94 +239,10 @@ public class FileHelper {
             }
             in.close();
         }catch(FileNotFoundException e){
-            Log.e(TAG, e.toString());
+            e.printStackTrace();
         }catch(IOException e){
-            Log.e(TAG, e.toString());
+            e.printStackTrace();
         }
         return file_lines;
-    }
-    public static void pickUpDistinguishingValue(String source_file_name, String every_day_file_name) {
-        BufferedReader in = null;
-        try {
-            FileInputStream file = ChartActivity.getInstance().openFileInput(source_file_name);
-            in = new BufferedReader(new InputStreamReader(file));
-
-            FileOutputStream fs_ave = ChartActivity.getInstance().openFileOutput(every_day_file_name, MODE_PRIVATE);
-            OutputStreamWriter every_day_file = new OutputStreamWriter(fs_ave);
-        //    BufferedReader every_day_file = new Buffer(new OutputStreamWriter(fs_ave));
-        //    PrintWriter every_day_file = new PrintWriter(fs_ave);
-            double d_ave = 0;
-            double d_hig = 0;
-            double d_min = 0;
-            double d_radi = 0;
-            double d_cumu = 0;
-            String date_ymd = "";
-            int cnt_temp_days = 1;
-            int cnt_radi_days = 1;
-            int cnt_row = 0;
-            Date date;
-            String line;
-
-            while ((line = in.readLine()) != null) {
-                if(cnt_row==0){
-                    cnt_row++;
-                    continue;
-                }
-                String elements[] = line.split(",");
-                date = sdf_csv.parse(elements[TIME_COLUMN_NUM]);
-                if (cnt_row == 1) {
-                    date_ymd = sdf_ymd.format(date);
-                } else {
-                    if (!date_ymd.equals(sdf_ymd.format(date)) || !in.ready()) {
-                        d_ave /= cnt_temp_days;
-                        d_ave = ((int)(d_ave*10))/10;
-                        d_radi /= cnt_radi_days;
-                        String new_row = date_ymd+","+d_ave+","+d_hig+","+d_min+","+d_cumu+","+d_radi;
-                        Log.d(TAG+"PickupVal",new_row);
-                        every_day_file.write(new_row+"\n");
-                        d_ave = 0;
-                        d_hig = 0;
-                        d_min = 0;
-                        d_radi = 0;
-                        cnt_temp_days = 1;
-                        cnt_radi_days = 1;
-                        date_ymd = sdf_ymd.format(date);
-                    }
-                }
-
-                if(!elements[TEMPERATURE_COLUMN_NUM].equals("null")) {
-                    Double line_temp = Double.parseDouble(elements[TEMPERATURE_COLUMN_NUM]);
-                    d_cumu += Double.parseDouble(elements[2]);
-                    if (cnt_temp_days == 1) {
-                        d_ave = line_temp;
-                        d_hig = line_temp;
-                        d_min = line_temp;
-                    } else {
-                        d_ave += line_temp;
-                        if (d_hig < line_temp)
-                            d_hig = line_temp;
-                        if (d_min > line_temp)
-                            d_min = line_temp;
-                    }
-                    cnt_temp_days++;
-                }
-                if(!elements[3].equals("null")) {
-                    d_radi += Double.parseDouble(elements[3]);
-                    Log.d(TAG,"-- rad "+d_radi+"@"+date_ymd);
-                    cnt_radi_days++;
-                }
-                cnt_row++;
-                Log.d(TAG,"cumu "+d_cumu);
-                Log.d(TAG,"radi "+d_radi);
-            }
-            in.close();
-            every_day_file.close();
-        } catch (FileNotFoundException e) {
-            Log.e(TAG, e.toString());
-        } catch (IOException e) {
-            Log.e(TAG, e.toString());
-        } catch (ParseException e) {
-            Log.e(TAG, e.toString());
-        }
     }
 }

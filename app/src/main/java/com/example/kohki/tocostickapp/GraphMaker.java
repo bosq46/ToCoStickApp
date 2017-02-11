@@ -43,7 +43,10 @@ public class GraphMaker {
 
     void makeLineChart(String data_file,boolean isDayScale) {
         mGData   = new GraphData(ChartActivity.getInstance(), mLineChart);
-        mDataSet = mGData.getLineData(data_file,isDayScale);
+        if(isDayScale)
+            mDataSet = mGData.getLineDataOfDay(data_file);
+        else
+            mDataSet = mGData.getLineDataOfAllTime(data_file);
         mLineChart.setData(mDataSet);
         setChart();
     }
