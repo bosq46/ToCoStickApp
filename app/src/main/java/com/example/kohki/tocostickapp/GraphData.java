@@ -36,12 +36,6 @@ public class GraphData {
     private static final String TAG = "GraphDataCls";
     protected static SQLiteDatabase mDB;
 
-    private static final int TIME_COLUMN_NUM         = 0;
-    private static final int TEMPERATURE_COLUMN_NUM = 1;
-    private static final int HUMIDITY_COLUMN_NUM    = 2;
-    private static final int RADIATION_COLUMN_NUM   = 9;
-    private static final int MOISTURE_COLUMN_NUM    = 12;
-
     GraphData(Context context, LineChart lineChart){
         /*DB not use
         mDbHelper = new SensorDBHelper(context);
@@ -64,6 +58,7 @@ public class GraphData {
             BufferedReader in   = new BufferedReader(new InputStreamReader(file));
             String line;
             int cnt_file_lines = 0;
+            String pre_elements[]={};
 
             while ((line = in.readLine()) != null) {
                 Log.d(TAG + "Read data", line);
@@ -84,29 +79,45 @@ public class GraphData {
                         if(graph_date.equals(vent_line[0])){
                             float vent_par = Float.parseFloat(vent_line[1]);
                             al_ven.add(new Entry(vent_par, cnt_file_lines));
+                            break;
                         }
                     }
                 }
+                if(pre_elements.length != 0 && Float.parseFloat(pre_elements[1]) - Float.parseFloat(elements[5]) > 5)
+                    al_ave.add(new Entry(Float.parseFloat(pre_elements[1]), cnt_file_lines));
+                else
+                    al_ave.add(new Entry(Float.parseFloat(elements[1]), cnt_file_lines));
 
-                al_ave.add(new Entry(Float.parseFloat(elements[1]), cnt_file_lines));
-                al_hig.add(new Entry(Float.parseFloat(elements[2]), cnt_file_lines));
+                if(pre_elements.length != 0 && Float.parseFloat(pre_elements[2]) - Float.parseFloat(elements[2]) > 10)
+                    al_hig.add(new Entry(Float.parseFloat(pre_elements[2]), cnt_file_lines));
+                else
+                    al_hig.add(new Entry(Float.parseFloat(elements[2]), cnt_file_lines));
+
+                //Recently, It is cold...
                 al_min.add(new Entry(Float.parseFloat(elements[3]), cnt_file_lines));
+
                 if(ChartActivity.isPaintCumuTemp) {
-                    al_cum.add(new Entry(Float.parseFloat(elements[4]) / 500, cnt_file_lines)); //TODO:値の重みを決める.
-                    Log.d(TAG,"Cumu "+cnt_file_lines+" "+elements[4]);
-                }if(ChartActivity.isPaintRadiation) {
-                    al_rad.add(new Entry(Float.parseFloat(elements[5]) / 10 , cnt_file_lines));
-                    Log.d(TAG,"Radiation "+cnt_file_lines+" "+elements[5]);
+                    al_cum.add(new Entry(Float.parseFloat(elements[4]) / 200000000f, cnt_file_lines)); //TODO:値の重みを決める.
+                //    Log.d(TAG,"Cumu "+cnt_file_lines+" "+elements[4]);
+                }
+                if(ChartActivity.isPaintRadiation) {
+                    if(pre_elements.length != 0 && (Float.parseFloat(elements[5]) == 0 || Float.parseFloat(elements[5]) - Float.parseFloat(pre_elements[5]) > 500))
+                        al_rad.add(new Entry(Float.parseFloat(pre_elements[5]) /10 , cnt_file_lines));
+                    else
+                        al_rad.add(new Entry(Float.parseFloat(elements[5]) /10 , cnt_file_lines));
+
+                    //    Log.d(TAG,"Radiation f:"+cnt_file_lines+" "+Float.parseFloat(elements[5]));
                 }
                 cnt_file_lines++;
+                pre_elements = elements;
             }
 
             in.close();
         } catch (IOException e) {
-            Log.e(TAG,e.toString());
+            e.printStackTrace();
             Toast.makeText(ChartActivity.getInstance(), "" + e, Toast.LENGTH_SHORT).show();
         } catch (NumberFormatException e) {
-            Log.e(TAG,e.toString());
+            e.printStackTrace();
             Toast.makeText(ChartActivity.getInstance(), "" + e, Toast.LENGTH_SHORT).show();
         }
         ArrayList<Integer> colors = new ArrayList<>();
@@ -117,6 +128,9 @@ public class GraphData {
             colors = new ArrayList<>();
             colors.add(ColorTemplate.COLORFUL_COLORS[2]);
             radi_set.setColors(colors);
+            radi_set.setLineWidth(2);
+            radi_set.enableDashedLine(10,5,0);
+            radi_set.enableDashedHighlightLine(10f, 5f, 0f);
             radi_set.setCircleRadius(0);
             radi_set.setCircleColor(ColorTemplate.COLORFUL_COLORS[2]);
             radi_set.setFillColor(ColorTemplate.COLORFUL_COLORS[2]);
@@ -206,6 +220,11 @@ public class GraphData {
 
         return data;
     }
+
+
+
+
+
     public LineData getLineDataOfAllTime(String file_name){
 
         ArrayList<String> al_labels = new ArrayList<String>();
@@ -223,6 +242,9 @@ public class GraphData {
             SimpleDateFormat sdf_ymdhm = new SimpleDateFormat("yyyy'/'MM'/'dd HH:mm");
             SimpleDateFormat sdf_ymd   = new SimpleDateFormat("yyyy'/'MM'/'dd");
 
+            long pre_time = 0;
+            long now_time = 0;
+            float pre_radi = 0;
             while ((line = in.readLine()) != null) {
                 String[] elements = line.split(",");
                 Date line_date = sdf_ymdhm.parse(elements[0]);
@@ -231,7 +253,7 @@ public class GraphData {
                 line_cal.setTime(line_date);
                 now_cal.setTime(new Date());
 
-                if(now_cal.getTimeInMillis() - line_cal.getTimeInMillis() > 2*24*60*60*1000)
+                if(now_cal.getTimeInMillis() - line_cal.getTimeInMillis() > 3*24*60*60*1000)
                     continue;
                 al_labels.add(elements[0]);
 
@@ -248,18 +270,35 @@ public class GraphData {
                         if(graph_date.equals(vent_line[0])){
                             float vent_par = Float.parseFloat(vent_line[1]);
                             al_ven.add(new Entry(vent_par, cnt_file_lines));
+                            break;
                         }
                     }
                 }
-                if(!elements[1].equals("null"))
+                if (!elements[1].equals("null"))
                     al_temp.add(new Entry(Float.parseFloat(elements[1]), cnt_file_lines));
-                if(ChartActivity.isPaintCumuTemp && !elements[2].equals("null")) {
-                    al_cum.add(new Entry(Float.parseFloat(elements[2]) / 10, cnt_file_lines));
-                    Log.d(TAG,"CumuTemp "+cnt_file_lines+" "+elements[2]);
-                }if(ChartActivity.isPaintRadiation && !elements[3].equals("null")) {
-                    al_rad.add(new Entry(Float.parseFloat(elements[3]) /20, cnt_file_lines));
-                    Log.d(TAG,"Radiation "+cnt_file_lines+" "+elements[3]);
+/*
+                if(pre_time == 0) {
+                    pre_time = line_cal.getTimeInMillis();
+                    if(ChartActivity.isPaintCumuTemp && !elements[1].equals("null"))
+                        al_cum.add(new Entry(Float.parseFloat(elements[1]), cnt_file_lines));
+                }else {
+                    if(ChartActivity.isPaintCumuTemp && !elements[1].equals("null"))
+                        al_cum.add(new Entry(Float.parseFloat(elements[1])* (now_time-pre_time)/10000 , cnt_file_lines));//TODO:
                 }
+*/
+                if(ChartActivity.isPaintCumuTemp && !elements[2].equals("null")) {
+                    al_cum.add(new Entry((Float.parseFloat(elements[2]) -1000000)/40000, cnt_file_lines));
+                    Log.d(TAG,"plot CumuTemp "+cnt_file_lines+" "+elements[2]);
+                }
+
+                if(ChartActivity.isPaintRadiation && !elements[3].equals("null")) {
+                    if(Float.parseFloat(elements[3])/10 - pre_radi > 500)
+                        al_rad.add(new Entry(pre_radi, cnt_file_lines));
+                    else
+                        al_rad.add(new Entry(Float.parseFloat(elements[3])/10, cnt_file_lines));
+                    pre_radi = Float.parseFloat(elements[3])/10;
+                }
+                pre_time = now_time;
                 cnt_file_lines++;
             }
             in.close();

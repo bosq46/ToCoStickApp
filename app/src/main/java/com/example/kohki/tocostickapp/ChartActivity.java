@@ -148,20 +148,22 @@ public class ChartActivity extends FragmentActivity {
         */
 
         findViewById(R.id.btn_change_field).setOnClickListener(new FieldChangeBtnClickListener());
-        findViewById(R.id.btn_change_scale).setOnClickListener(new View.OnClickListener() {
+        Button btn_sclale = (Button) findViewById(R.id.btn_change_scale);
+        btn_sclale.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Button btn = (Button)v;
                 isDayScaleGraph = !isDayScaleGraph;
                 if(isDayScaleGraph)
-                    btn.setText("日毎");
+                    btn.setText("1ヶ月");
                 else
                     btn.setText("3日間");
             }
         });
-        String file_name = "t_temperature.csv";
-        FileHelper.moveFromAssetsToLocal(this,"tokushima_temp_data.csv",file_name);
-        createChart(file_name,"2017年1月");
+        if(isDayScaleGraph)
+            btn_sclale.setText("1ヶ月");
+        else
+            btn_sclale.setText("3日間");
     }
 
     private boolean checkFile(Context context, String file_name){
@@ -169,8 +171,8 @@ public class ChartActivity extends FragmentActivity {
         return file.exists();
     }
     /* createChart(String file_name,String graph_title) はダウンロードした後に実行される */
-    public static void createChart(String file_name, String graph_title){
-        mGMaker.makeLineChart(file_name,isDayScaleGraph);
+    public static void createChart(String file_name, String graph_title,boolean is_day_scale){
+        mGMaker.makeLineChart(file_name,is_day_scale);
         mTvGraphYearMonth.setText(graph_title);
         /*
         switch (mDataSource) {
@@ -195,7 +197,7 @@ public class ChartActivity extends FragmentActivity {
     public static void createChart(){
         FileContract mID = new FileContract(ChartActivity.getInstance());
         String file_name;
-        if(isDayScaleGraph)
+        if(ChartActivity.isDayScaleGraph)
             file_name = mID.getGateWayID()+"_"+mID.getNodeID()+"_days.csv";
         else
             file_name = mID.getGateWayID()+"_"+mID.getNodeID()+".csv";
@@ -208,7 +210,7 @@ public class ChartActivity extends FragmentActivity {
         String[] ymd = latest_date.split("/");
         String latest_ym = ymd[0]+"年"+ymd[1]+"月";
         Log.d(TAG, "Graph title " + latest_ym);
-    //    createChart(file_name, latest_ym);
+        createChart(file_name, latest_ym,ChartActivity.isDayScaleGraph);
     }
 
     private void setBtnColor(Button btn){

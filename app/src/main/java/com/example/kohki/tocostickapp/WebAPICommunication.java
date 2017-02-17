@@ -34,6 +34,7 @@ import static android.content.Context.MODE_PRIVATE;
  */
 
 public class WebAPICommunication  extends WebDataDLBtnClickListener{
+
     private static final String TAG = "WebAPICls";
     private static final String TOKEN_REQUEST = "http://www17337uj.sakura.ne.jp:3000/getToken";
     private static final String DATA_REQUEST  = "http://agridatabase.mybluemix.net/v1/json/collection/item/";
@@ -147,13 +148,29 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
         }
 
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     private final class SensorDataGetter extends AsyncTask<URL, Void, Void> {
 
         private String TAG = "SensDGetter";
         private int mGetPeriod = 30;
-        private static final int download_interval = 3;
+        private static final int GET_INTERVAL_H = 40; //2日以内ずつしか取れない.(データ数は10分間隔)
+        ConcurrentHashMap cumu_temp_sum;
         private float cumu_temp = 0;
-        float from_date;
+        private float from_date;
         boolean is_first_temp_loop  = true;
         SimpleDateFormat sdf_webapi= new SimpleDateFormat("yyyy'-'MM'-'dd'T'kk':'mm':'ss'.000000Z'");
         SimpleDateFormat sdf_ymdhm = new SimpleDateFormat("yyyy'/'MM'/'dd HH:mm");
@@ -161,6 +178,7 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
 
         @Override
         protected Void doInBackground(URL... urls) {
+            cumu_temp_sum = new ConcurrentHashMap<String,Float>();
             if(Tokens == null) {
                 Log.e(TAG, "Tokens is null");
             }else {
@@ -187,51 +205,80 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
             Calendar commu_from_cal = Calendar.getInstance();
             Calendar commu_to_cal   = Calendar.getInstance();//now?
             Calendar target_cal     = Calendar.getInstance();
-            commu_from_cal.add(Calendar.DATE, -1 * mGetPeriod);
-            commu_to_cal.add(Calendar.DATE, -1 * mGetPeriod);
 
-            Log.d(TAG+" from_cal", sdf_webapi.format(commu_from_cal.getTime()));
-            Log.d(TAG+" target_cal", sdf_webapi.format(target_cal.getTime())  );
+            commu_from_cal.add(Calendar.DATE, -1 * mGetPeriod);
+            commu_to_cal.add(  Calendar.DATE, -1 * mGetPeriod);
+
+        //    commu_from_cal.set(2017,0,10,14,23);//DEBUG--
+        //    commu_to_cal.set(  2017,0,10,14,23);
+        //    target_cal.set(    2017,0,15,23,50);//     --
+
+            commu_from_cal.add(Calendar.HOUR,9);
+            commu_from_cal.add(Calendar.MINUTE,-10);
+
+            commu_to_cal.add(Calendar.HOUR,9);
+            commu_to_cal.add(Calendar.MINUTE,-10);
+
+            target_cal.add(Calendar.HOUR,9);
+
+            Log.d(TAG, "-- download env data --");
+            Log.d(TAG, sdf_ymdhm.format(commu_from_cal.getTime()));
+            Log.d(TAG, sdf_ymdhm.format(target_cal.getTime()));
 
             try {
-                while (target_cal.getTimeInMillis() - commu_from_cal.getTimeInMillis() > download_interval*24*60*60*1000){
-                    commu_to_cal.add(Calendar.DATE, download_interval);
+                String[] result = new String[2];
+                while (commu_to_cal.getTimeInMillis() != target_cal.getTimeInMillis() ){
+                    commu_to_cal.add(Calendar.HOUR, GET_INTERVAL_H);
+                    if(commu_to_cal.getTimeInMillis() > target_cal.getTimeInMillis())
+                        commu_to_cal = target_cal;
 
-                    Log.d(TAG+" frDateTime", commu_from_cal.getTime().getDate()  +"日"+commu_from_cal.getTime().getHours() +"-");
-                    Log.d(TAG+" toDateTime", commu_to_cal.getTime().getDate() +"日"+commu_to_cal.getTime().getHours()  +"");
-                    Log.d(TAG,commu_from_cal.getTimeInMillis()+"-"+commu_to_cal.getTimeInMillis());
+                    Log.d(TAG+" frDateTime", sdf_ymdhm.format(commu_from_cal.getTime()));
+                    Log.d(TAG+" toDateTime", sdf_ymdhm.format(commu_to_cal.getTime()));
 
                     String queryDate = "{\"$where\":\"this.time >= new Date("+commu_from_cal.getTimeInMillis()+") &&" +
                             " this.time <= new Date("+commu_to_cal.getTimeInMillis()+")\",";
                     String query = URLEncoder.encode(queryDate + mQueryPost, "UTF-8");
                     String request = DATA_REQUEST +"?Name="+mGatewayNAME+"&Keys="+mDataKeys+"&Query="+query;
-                    requestSensData(request);
-                    commu_from_cal.add(Calendar.DATE, download_interval);
+                    result = requestSensData(request);
+                    commu_from_cal.add(Calendar.HOUR, GET_INTERVAL_H);
+                    final long fr = commu_from_cal.getTimeInMillis();
+                    final long to = commu_to_cal.getTimeInMillis();
+                    ChartActivity.mHandler.post(new Runnable() { //viewの変更はmHandlerから行う。
+                        @Override
+                        public void run() {
+                     //       Toast.makeText(ChartActivity.getInstance(),fr+"/"+to,Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
-                Log.d(TAG+" frDateTime", commu_from_cal.getTime().getDate()  +"日"+commu_from_cal.getTime().getHours() +"-");
-                Log.d(TAG+" taDateTime", target_cal.getTime().getDate() +"日"+target_cal.getTime().getHours()  +"");
-                Log.d(TAG,commu_from_cal.getTimeInMillis()+"-"+target_cal.getTimeInMillis());
-
-                String queryDate = "{\"$where\":\"this.time >= new Date("+commu_from_cal.getTimeInMillis()+") &&" +
-                        " this.time <= new Date("+target_cal.getTimeInMillis()+")\",";
-                String query = URLEncoder.encode(queryDate + mQueryPost, "UTF-8");
-                String request = DATA_REQUEST +"?Name="+mGatewayNAME+"&Keys="+mDataKeys+ "&Query="+query;
-                String[] result = requestSensData(request);
-
+                if(result[0] ==null){
+                    ChartActivity.mHandler.post(new Runnable() { //viewの変更はmHandlerから行う。
+                        @Override
+                        public void run() {
+                            Toast.makeText(ChartActivity.getInstance(),"ダウンロード失敗",Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
                 if(Integer.parseInt(result[1]) == 0){
-                    String range = (new Date(commu_from_cal.getTimeInMillis())).getDate() +"日"+(new Date(target_cal.getTimeInMillis())).getHours() +"から"+
+                    final String range = (new Date(commu_from_cal.getTimeInMillis())).getDate() +"日"+(new Date(target_cal.getTimeInMillis())).getHours() +"から"+
                             (new Date(toDateTime)).getDate() +"日"+(new Date(toDateTime)).getHours() +"までのデータがありません";
-                    Toast.makeText(ChartActivity.getInstance(),range,Toast.LENGTH_SHORT).show();
+                    ChartActivity.mHandler.post(new Runnable() { //viewの変更はmHandlerから行う。
+                        @Override
+                        public void run() {
+                            Toast.makeText(ChartActivity.getInstance(),range,Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
+                DayFileExtracter.extractDay(all_file_name,   day_file_name);
+                FileHelper.readAsStrFile(ChartActivity.getInstance(), day_file_name);//FIXME: delete me.
+
                 final String latest_date = result[2];
                 ChartActivity.mHandler.post(new Runnable() { //viewの変更はmHandlerから行う。
                     @Override
                     public void run() {
-                //        new ChartActivity().createChart(day_file_name,latest_date);
+                        new ChartActivity().createChart(day_file_name,latest_date,ChartActivity.isDayScaleGraph);
                         Toast.makeText(ChartActivity.getInstance(),"ダウンロード完了",Toast.LENGTH_SHORT).show();
                     }
                 });
-
             }catch (UnsupportedEncodingException e){
                 e.printStackTrace();
             }
@@ -290,6 +337,7 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
                 final String all_file_name = mID.getGateWayID()+"_"+mID.getNodeID()+".csv";
                 final String day_file_name = mID.getGateWayID()+"_"+mID.getNodeID()+"_days.csv";
 
+
                 String date_time;
                 String date_month = "";
 
@@ -304,16 +352,22 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
 
                         String s_temperature = json_data.getString("air_temperature");
                         float f_temperature = (float)Math.floor(Float.parseFloat(s_temperature)*10)/10;
+
                         if(is_first_temp_loop){
-                            cumu_temp = f_temperature/10000000*2;
-                            from_date = sdf_webapi.parse(json_data.getString("time")).getTime() /1000;
+                            cumu_temp_sum.put("cumu",f_temperature);
+                         //   cumu_temp = f_temperature;
+                            from_date = sdf_webapi.parse(json_data.getString("time")).getTime() /10000;
                             is_first_temp_loop = false;
                         }else {
-                            float intervel = sdf_webapi.parse(json_data.getString("time")).getTime() / 1000  - from_date;
-                        //    Log.d(TAG+" intervel",intervel+"");
-                            cumu_temp = cumu_temp + f_temperature/10000000*2 * intervel;
-                        //    Log.d(TAG+" cumu_temp",cumu_temp+"");
-                            from_date = sdf_webapi.parse(json_data.getString("time")).getTime() /1000;
+                            float intervel = sdf_webapi.parse(json_data.getString("time")).getTime() /10000  - from_date;
+                            Log.d(TAG+" temperat",f_temperature+"");
+                            Log.d(TAG+" intervel",intervel+"");//ex 64.0
+                        //    float c = (float)cumu_temp_sum.get("cumu");
+                        //    float d = (c+f_temperature)/80;
+                        //    cumu_temp_sum.put("cumu",d);
+                            cumu_temp += f_temperature * intervel; //ex 1.0961849E10
+                            Log.d(TAG+" cumu_temp",cumu_temp+"");
+                            from_date = sdf_webapi.parse(json_data.getString("time")).getTime() /10000; //10000 - 64.0
                         }
                     //    Log.d(TAG, "save temperature "+f_temperature+20+" @"+date_time);
                     //    Log.d(TAG, "save cumulative  "+cumu_temp+" @"+date_time);
@@ -328,19 +382,16 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
                     //    Log.d(TAG, "save radiation "+radiation+"@"+date_time);
                         FileHelper.writeAsStrFile(ChartActivity.getInstance(), all_file_name, date_time, got_data);
                     }
-                }
-                DayFileExtracter.extractDay(all_file_name,   day_file_name);
-                FileHelper.readAsStrFile(ChartActivity.getInstance(), day_file_name);//FIXME: delete me.
 
+                }
                 result[2] = date_month;
-                final String latest_date = result[2];
+                final String title = date_month;
                 ChartActivity.mHandler.post(new Runnable() { //viewの変更はmHandlerから行う。
                     @Override
                     public void run() {
-                //        new ChartActivity().createChart(day_file_name,latest_date);
+                        new ChartActivity().createChart(all_file_name,title, false);
                     }
                 });
-
             } catch (JSONException e) {
                 e.printStackTrace();
             }catch (ParseException e){

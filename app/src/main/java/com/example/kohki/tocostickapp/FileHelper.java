@@ -83,12 +83,10 @@ public class FileHelper {
             while ((line = reader.readLine()) != null) {
                 line += "\n";
                 strBuffer.append(line);
+            //    Log.d(TAG,"line "+line);
             }
             text = strBuffer.toString();
-//            Toast.makeText(context_, text, Toast.LENGTH_SHORT).show();
-            // ストリームを閉じる
             reader.close();
-            // 読み込んだ文字列を返す
         }catch (IOException e){
             e.printStackTrace();
         }
