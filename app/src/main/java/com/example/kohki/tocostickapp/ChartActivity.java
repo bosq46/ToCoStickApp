@@ -30,7 +30,8 @@ public class ChartActivity extends FragmentActivity {
     private static ChartActivity sInstance;
 
     private static TextView mTvGraphYearMonth;
-    public static boolean isDayScaleGraph = true;
+    public static int DayRangeOfGraph = 30;
+    private static int[] DayRangeOfGraphList = {1,3,7,14,30};
     public static boolean isPaintRadiation;
     public static boolean isPaintCumuTemp;
     public static boolean isPaintVentilation;
@@ -153,26 +154,27 @@ public class ChartActivity extends FragmentActivity {
             @Override
             public void onClick(View v) {
                 Button btn = (Button)v;
-                isDayScaleGraph = !isDayScaleGraph;
-                if(isDayScaleGraph)
-                    btn.setText("1ヶ月");
-                else
-                    btn.setText("3日間");
+                changeTimeRangeOfGraph();
+                btn.setText(DayRangeOfGraph+"日間");
             }
         });
-        if(isDayScaleGraph)
-            btn_sclale.setText("1ヶ月");
-        else
-            btn_sclale.setText("3日間");
+        btn_sclale.setText(DayRangeOfGraph+"日間");
     }
 
-    private boolean checkFile(Context context, String file_name){
-        File file = context.getFileStreamPath(file_name);
-        return file.exists();
+    public static void changeTimeRangeOfGraph(){
+        for(int i=0;i<DayRangeOfGraphList.length;i++){
+            if(DayRangeOfGraph == DayRangeOfGraphList[i]){
+                if(i<DayRangeOfGraphList.length-1)
+                    DayRangeOfGraph = DayRangeOfGraphList[i+1];
+                else
+                    DayRangeOfGraph = DayRangeOfGraphList[0];
+                break;
+            }
+        }
     }
     /* createChart(String file_name,String graph_title) はダウンロードした後に実行される */
-    public static void createChart(String file_name, String graph_title,boolean is_day_scale){
-        mGMaker.makeLineChart(file_name,is_day_scale);
+    public static void createChart(String file_name, String graph_title){
+        mGMaker.makeLineChart(file_name, DayRangeOfGraph);
         mTvGraphYearMonth.setText(graph_title);
         /*
         switch (mDataSource) {
@@ -197,7 +199,7 @@ public class ChartActivity extends FragmentActivity {
     public static void createChart(){
         FileContract mID = new FileContract(ChartActivity.getInstance());
         String file_name;
-        if(ChartActivity.isDayScaleGraph)
+        if(DayRangeOfGraph >= 3)
             file_name = mID.getGateWayID()+"_"+mID.getNodeID()+"_days.csv";
         else
             file_name = mID.getGateWayID()+"_"+mID.getNodeID()+".csv";
@@ -210,7 +212,7 @@ public class ChartActivity extends FragmentActivity {
         String[] ymd = latest_date.split("/");
         String latest_ym = ymd[0]+"年"+ymd[1]+"月";
         Log.d(TAG, "Graph title " + latest_ym);
-        createChart(file_name, latest_ym,ChartActivity.isDayScaleGraph);
+        createChart(file_name, latest_ym);
     }
 
     private void setBtnColor(Button btn){

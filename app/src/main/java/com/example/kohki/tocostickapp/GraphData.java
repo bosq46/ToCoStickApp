@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.github.mikephil.charting.charts.Chart;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
@@ -63,6 +64,19 @@ public class GraphData {
             while ((line = in.readLine()) != null) {
                 Log.d(TAG + "Read data", line);
                 String[] elements = line.split(",");
+                /*
+                SimpleDateFormat sdf_ymd = new SimpleDateFormat("yyyy'/'MM'/'dd");
+                try {
+                    Date row_date = sdf_ymd.parse(elements[0]);
+                    Log.d(TAG,"settime :"+ChartActivity.DayRangeOfGraph*24*60*60*1000);
+                    Log.d(TAG,"rowtime :"+row_date.getTime());
+                    if(ChartActivity.DayRangeOfGraph*24*60*60*1000 >= row_date.getTime()){
+
+                    }else {continue;}
+                }catch (ParseException e){
+                    e.printStackTrace();
+                }
+                */
                 al_labels.add(elements[0]);
 
                 if(ChartActivity.isPaintVentilation){

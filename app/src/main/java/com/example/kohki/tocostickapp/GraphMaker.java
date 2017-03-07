@@ -41,9 +41,9 @@ public class GraphMaker {
         mChartTitle = tv;
     }
 
-    void makeLineChart(String data_file,boolean isDayScale) {
+    void makeLineChart(String data_file,int DayRangeOfGraph) {
         mGData   = new GraphData(ChartActivity.getInstance(), mLineChart);
-        if(isDayScale)
+        if(DayRangeOfGraph >= 3)
             mDataSet = mGData.getLineDataOfDay(data_file);
         else
             mDataSet = mGData.getLineDataOfAllTime(data_file);

@@ -175,6 +175,8 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
         SimpleDateFormat sdf_webapi= new SimpleDateFormat("yyyy'-'MM'-'dd'T'kk':'mm':'ss'.000000Z'");
         SimpleDateFormat sdf_ymdhm = new SimpleDateFormat("yyyy'/'MM'/'dd HH:mm");
         SimpleDateFormat sdf_ym    = new SimpleDateFormat("yyyy'年'MM'月'");
+        private long timeIntervalOfDownload = 0;
+        private int cntDownload = 0;
 
         @Override
         protected Void doInBackground(URL... urls) {
@@ -239,6 +241,7 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
                             " this.time <= new Date("+commu_to_cal.getTimeInMillis()+")\",";
                     String query = URLEncoder.encode(queryDate + mQueryPost, "UTF-8");
                     String request = DATA_REQUEST +"?Name="+mGatewayNAME+"&Keys="+mDataKeys+"&Query="+query;
+                    cntDownload++;
                     result = requestSensData(request);
                     commu_from_cal.add(Calendar.HOUR, GET_INTERVAL_H);
                     final long fr = commu_from_cal.getTimeInMillis();
@@ -275,7 +278,7 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
                 ChartActivity.mHandler.post(new Runnable() { //viewの変更はmHandlerから行う。
                     @Override
                     public void run() {
-                        new ChartActivity().createChart(day_file_name,latest_date,ChartActivity.isDayScaleGraph);
+                        new ChartActivity().createChart(day_file_name, latest_date);
                         Toast.makeText(ChartActivity.getInstance(),"ダウンロード完了",Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -337,18 +340,19 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
                 final String all_file_name = mID.getGateWayID()+"_"+mID.getNodeID()+".csv";
                 final String day_file_name = mID.getGateWayID()+"_"+mID.getNodeID()+"_days.csv";
 
-
                 String date_time;
                 String date_month = "";
 
-                float fromtime;
+                Date date_webapi = new Date();
                 while (m.find()){
                 //    Log.d(TAG+"-- json data",m.group());
                     JSONObject json_data = new JSONObject(m.group());
-                    date_month  = sdf_ym.format(sdf_webapi.parse(json_data.getString("time")));
-
+                    date_webapi = sdf_webapi.parse(json_data.getString("time"));
+                    date_month  = sdf_ym.format(date_webapi);
+                    if(cntDownload == 1)
+                        timeIntervalOfDownload = new Date().getTime() - date_webapi.getTime();
                     if(json_data.has("air_temperature")) {
-                        date_time   = sdf_ymdhm.format(sdf_webapi.parse(json_data.getString("time")));
+                        date_time   = sdf_ymdhm.format(date_webapi);
 
                         String s_temperature = json_data.getString("air_temperature");
                         float f_temperature = (float)Math.floor(Float.parseFloat(s_temperature)*10)/10;
@@ -356,10 +360,10 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
                         if(is_first_temp_loop){
                             cumu_temp_sum.put("cumu",f_temperature);
                          //   cumu_temp = f_temperature;
-                            from_date = sdf_webapi.parse(json_data.getString("time")).getTime() /10000;
+                            from_date = date_webapi.getTime() /10000;
                             is_first_temp_loop = false;
                         }else {
-                            float intervel = sdf_webapi.parse(json_data.getString("time")).getTime() /10000  - from_date;
+                            float intervel = date_webapi.getTime() /10000  - from_date;
                             Log.d(TAG+" temperat",f_temperature+"");
                             Log.d(TAG+" intervel",intervel+"");//ex 64.0
                         //    float c = (float)cumu_temp_sum.get("cumu");
@@ -367,15 +371,16 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
                         //    cumu_temp_sum.put("cumu",d);
                             cumu_temp += f_temperature * intervel; //ex 1.0961849E10
                             Log.d(TAG+" cumu_temp",cumu_temp+"");
-                            from_date = sdf_webapi.parse(json_data.getString("time")).getTime() /10000; //10000 - 64.0
+                            from_date = date_webapi.getTime() / 10000; //10000 - 64.0
                         }
                     //    Log.d(TAG, "save temperature "+f_temperature+20+" @"+date_time);
                     //    Log.d(TAG, "save cumulative  "+cumu_temp+" @"+date_time);
                         String got_data = s_temperature+","+cumu_temp+",null";
                         FileHelper.writeAsStrFile(ChartActivity.getInstance(), all_file_name, date_time, got_data);
                     }
+
                     if(json_data.has("amount_of_solar_radiation")) {
-                        date_time   = sdf_ymdhm.format(sdf_webapi.parse(json_data.getString("time")));
+                        date_time   = sdf_ymdhm.format(date_webapi);
 
                         String radiation = json_data.getString("amount_of_solar_radiation");
                         String got_data = "null,null,"+radiation;
@@ -385,11 +390,13 @@ public class WebAPICommunication  extends WebDataDLBtnClickListener{
 
                 }
                 result[2] = date_month;
-                final String title = date_month;
+                double current_time =  timeIntervalOfDownload - (new Date().getTime() - date_webapi.getTime() );
+                final int parcent = (int) (current_time / (double) timeIntervalOfDownload *100);
+                Log.d(TAG,"0000:"+current_time +"/"+timeIntervalOfDownload);//
                 ChartActivity.mHandler.post(new Runnable() { //viewの変更はmHandlerから行う。
                     @Override
                     public void run() {
-                        new ChartActivity().createChart(all_file_name,title, false);
+                        Toast.makeText(ChartActivity.getInstance(),parcent+" % ",Toast.LENGTH_SHORT).show();
                     }
                 });
             } catch (JSONException e) {
