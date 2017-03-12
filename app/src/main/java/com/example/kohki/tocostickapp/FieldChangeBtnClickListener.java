@@ -31,11 +31,12 @@ import static android.content.Context.MODE_PRIVATE;
  * Created by Kohki on 2017/02/05.
  */
 
-public class FieldChangeBtnClickListener  implements View.OnClickListener {
+public class FieldChangeBtnClickListener implements View.OnClickListener {
+    private static final String TAG = "FieldCListener";
     private AlertDialog.Builder builder;
     public static AlertDialog alertDialog;
-    private static final String TAG = "FieldCListener";
     private FileContract mID;
+
     @Override
     public void onClick(View v) {
         final Context context = ChartActivity.getInstance();

@@ -23,12 +23,11 @@ import jp.ksksue.driver.serial.FTDriver;
 public class ReceiveThreadHelper {
     public static Context mContext; //FIXME: static
     private ReceiveThread mCommuThread;
-
     public  static int commuPhase;
 
     public ReceiveThreadHelper(Context context, String file_name, Handler handler){
         mContext = context;
-        mCommuThread  = new ReceiveThread(context);
+        mCommuThread = new ReceiveThread(context);
     }
 
     public boolean start(){
@@ -76,6 +75,7 @@ public class ReceiveThreadHelper {
         }
         return true;
     }
+
     public static boolean saveReceivedData(String received_hexdata) {
         Date date = new Date();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy'/'MM'/'dd EEE kk':'mm':'ss");//Arduino: V2016/07/11 SUN 00:37:30

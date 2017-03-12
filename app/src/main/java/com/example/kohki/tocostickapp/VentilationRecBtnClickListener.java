@@ -27,8 +27,6 @@ import static android.content.Context.MODE_PRIVATE;
  */
 
 class VentilationRecBtnClickListener implements View.OnClickListener {
-    private AlertDialog.Builder builder;
-    public static AlertDialog alertDialog;
     private static final String TAG = "VRCListener";
     private static final String PREFARENCE_FILE_NAME = "pre_vent_date_file";
     @Override
@@ -66,6 +64,8 @@ class VentilationRecBtnClickListener implements View.OnClickListener {
         tv_vent_parcent.setText(prefer.getFloat("vent_parcent", Float.parseFloat(tv_vent_parcent.getText() + "")) + "");
 
         layout.findViewById(R.id.btn_vent_one_plus).setOnClickListener(new VentilationParcentLinster(tv_vent_parcent));
+        AlertDialog.Builder builder;
+        AlertDialog alertDialog;
 
         try {
             builder = new AlertDialog.Builder(context);
