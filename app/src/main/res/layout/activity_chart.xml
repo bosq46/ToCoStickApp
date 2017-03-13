@@ -1,121 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-<android.support.v4.widget.DrawerLayout
--->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/drawer_layout"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:orientation="vertical"
+    <fragment class="com.example.kohki.tocostickapp.ChartFragment"
+        android:id="@+id/fragment_graph"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="right">
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="left">
-
-                <Button
-                    android:text="切替"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/btn_change_scale"
-                    android:layout_width="70dp"
-                    android:minWidth="30dp" />
-                <Button
-                    android:text="圃場"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/btn_change_field"
-                    android:layout_width="70dp"
-                    android:minWidth="30dp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/tv_graph_year_month"
-                    android:text="20XX年 X月"/>
-
-                <Button
-                    android:layout_width= "60dp"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/btn_get_webapi"
-                    android:text="Get"/>
-
-                <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/btn_record_ventilation"
-                    android:text="換気記録"
-                    android:layout_weight="0.73"
-                    android:theme="@android:style/MediaButton" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_height="wrap_content"
-            android:layout_width="match_parent">
-
-            <Button
-                android:text="日射量"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/btn_show_radiation"
-                android:layout_weight="1" />
-
-            <Button
-                android:text="積算温度"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/btn_show_cumulative"
-                android:layout_weight="1" />
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/btn_show_ventilation"
-                android:layout_weight="1"
-                android:text="換気率" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <com.github.mikephil.charting.charts.LineChart
-                android:id="@+id/chart"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="95"/>
-        </LinearLayout>
-
-    </LinearLayout >
-<!--
-    <LinearLayout
-        android:id="@+id/drawer"
-        android:layout_width="240dp"
         android:layout_height="match_parent"
-        android:layout_gravity="left" >
-        <LinearLayout
-            android:id="@+id/IDSelectMenu"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#FFFFFF"
-            android:orientation="vertical" />
-    </LinearLayout>
-</android.support.v4.widget.DrawerLayout>-->
+        android:layout_weight="1"/>
+
+    <fragment
+        class="com.example.kohki.tocostickapp.ChartMenuFragment"
+        android:id="@+id/fragment_graph_menu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
 </LinearLayout >

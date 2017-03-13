@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="right">
+
+        <Button
+            android:text="切替"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_change_scale"
+            android:layout_width="70dp"
+            android:minWidth="30dp" />
+        <Button
+            android:text="圃場"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_change_field"
+            android:layout_width="70dp"
+            android:minWidth="30dp" />
+
+        <Button
+            android:layout_width= "60dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_get_webapi"
+            android:text="Get"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_record_ventilation"
+            android:text="換気記録"
+            android:layout_weight="0.73"
+            android:theme="@android:style/MediaButton" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent">
+
+        <android.support.v7.widget.AppCompatCheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="日射量"/>
+        <Button
+            android:text="日射量"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_show_radiation"
+            android:layout_weight="1" />
+
+        <Button
+            android:text="積算温度"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_show_cumulative"
+            android:layout_weight="1" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_show_ventilation"
+            android:layout_weight="1"
+            android:text="換気率" />
+    </LinearLayout>
+</LinearLayout>
