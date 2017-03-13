@@ -107,7 +107,6 @@ public class GraphData {
                 else
                     al_hig.add(new Entry(Float.parseFloat(elements[2]), cnt_file_lines));
 
-                //Recently, It is cold...
                 al_min.add(new Entry(Float.parseFloat(elements[3]), cnt_file_lines));
 
                 if(ChartActivity.isPaintCumuTemp) {

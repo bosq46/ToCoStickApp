@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -31,7 +33,7 @@ public class ChartActivity extends FragmentActivity {
 
     private static TextView mTvGraphYearMonth;
     public static int DayRangeOfGraph = 30;
-    private static int[] DayRangeOfGraphList = {1,3,7,14,30};
+    private static int[] DayRangeOfGraphList = {3,30};// {1,3,7,14,30};
     public static boolean isPaintRadiation;
     public static boolean isPaintCumuTemp;
     public static boolean isPaintVentilation;
@@ -89,8 +91,14 @@ public class ChartActivity extends FragmentActivity {
         findViewById(R.id.btn_get_webapi).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mWebAPI.getToken();
-                mWebAPI.downloadSensorData();
+                ConnectivityManager cm = (ConnectivityManager) ChartActivity.getInstance().getSystemService(ChartActivity.getInstance().CONNECTIVITY_SERVICE);
+                NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+                if(activeNetwork != null && activeNetwork.isConnectedOrConnecting()) {
+                    mWebAPI.getToken();
+                    mWebAPI.downloadSensorData();
+                }else {
+                    Toast.makeText(ChartActivity.getInstance(), "インターネットに接続してください",Toast.LENGTH_SHORT).show();
+                }
             }
         });
         findViewById(R.id.btn_record_ventilation).setOnClickListener(new VentilationRecBtnClickListener());
@@ -199,7 +207,7 @@ public class ChartActivity extends FragmentActivity {
     public static void createChart(){
         FileContract mID = new FileContract(ChartActivity.getInstance());
         String file_name;
-        if(DayRangeOfGraph >= 3)
+        if(DayRangeOfGraph > 3)
             file_name = mID.getGateWayID()+"_"+mID.getNodeID()+"_days.csv";
         else
             file_name = mID.getGateWayID()+"_"+mID.getNodeID()+".csv";
@@ -287,7 +295,7 @@ public class ChartActivity extends FragmentActivity {
     @Override
     public void onResume(){
         super.onResume();
-    ///    mGMaker.makeLineChart(mGraphScale);
+        createChart();
     }
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
